@@ -7,7 +7,8 @@
     "ingest:cosmetics": "tsx src/scripts/runIngestCosmetics.ts",
     "explode:ingredients": "tsx src/scripts/runExplodeIngredients.ts",
     "map:ingredients": "tsx src/scripts/runMapIngredients.ts",
-    "export:audit": "tsx src/scripts/runExportAudit.ts"
+    "export:audit": "tsx src/scripts/runExportAudit.ts",
+    "auto-alias": "tsx src/scripts/runAutoAliasBuilder.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
