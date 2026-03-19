@@ -1,0 +1,285 @@
+{
+  "source": "genspark",
+  "products": [
+    {
+      "external_product_id": "genspark-001",
+      "product_name": "Moisturizing Cream",
+      "brand": "CeraVe",
+      "category": "skincare",
+      "subcategory": "moisturizer",
+      "ingredient_list_text": "Aqua / Water / Eau, Glycerin, Cetearyl Alcohol, Caprylic/Capric Triglyceride, Cetyl Alcohol, Ceteareth-20, Petrolatum, Potassium Phosphate, Ceramide NP, Ceramide AP, Ceramide EOP, Carbomer, Dimethicone, Behentrimonium Methosulfate, Sodium Lauroyl Lactylate, Sodium Hyaluronate, Cholesterol, Phenoxyethanol, Disodium EDTA, Dipotassium Phosphate, Tocopherol, Phytosphingosine, Xanthan Gum, Ethylhexylglycerin",
+      "inci_text": "Aqua / Water / Eau, Glycerin, Cetearyl Alcohol, Caprylic/Capric Triglyceride, Cetyl Alcohol, Ceteareth-20, Petrolatum, Potassium Phosphate, Ceramide NP, Ceramide AP, Ceramide EOP, Carbomer, Dimethicone, Behentrimonium Methosulfate, Sodium Lauroyl Lactylate, Sodium Hyaluronate, Cholesterol, Phenoxyethanol, Disodium EDTA, Dipotassium Phosphate, Tocopherol, Phytosphingosine, Xanthan Gum, Ethylhexylglycerin",
+      "source_url": "https://www.cerave.com/skincare/moisturizers/moisturizing-cream",
+      "raw_payload": {
+        "original_category": "moisturizer",
+        "notes": "Ingredients sourced directly from CeraVe product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-002",
+      "product_name": "Toleriane Double Repair Face Moisturizer",
+      "brand": "La Roche-Posay",
+      "category": "skincare",
+      "subcategory": "moisturizer",
+      "ingredient_list_text": "Aqua / Water, Glycerin, Dimethicone, Hydrogenated Polyisobutene, Niacinamide, Ammonium Polyacryloyldimethyl Taurate, Myristyl Myristate, Stearic Acid, Ceramide NP, Potassium Cetyl Phosphate, Isobutane, Glyceryl Stearate SE, Sodium Hydroxide, Myristic Acid, Palmitic Acid, Capryloyl Glycine, Caprylyl Glycol, Xanthan Gum, T-Butyl Alcohol, Acrylonitrile/Methyl Methacrylate/Vinylidene Chloride Copolymer, Tocopherol",
+      "inci_text": "Aqua / Water, Glycerin, Dimethicone, Hydrogenated Polyisobutene, Niacinamide, Ammonium Polyacryloyldimethyl Taurate, Myristyl Myristate, Stearic Acid, Ceramide NP, Potassium Cetyl Phosphate, Isobutane, Glyceryl Stearate SE, Sodium Hydroxide, Myristic Acid, Palmitic Acid, Capryloyl Glycine, Caprylyl Glycol, Xanthan Gum, T-Butyl Alcohol, Acrylonitrile/Methyl Methacrylate/Vinylidene Chloride Copolymer, Tocopherol",
+      "source_url": "https://www.laroche-posay.us/our-products/face/face-moisturizer/toleriane-double-repair-face-moisturizer-tolerianedoublerepair.html",
+      "raw_payload": {
+        "original_category": "facial moisturizer/treatment",
+        "notes": "Ingredient list sourced from EWG Skin Deep database entry for this product"
+      }
+    },
+    {
+      "external_product_id": "genspark-003",
+      "product_name": "Hydro Boost Water Gel",
+      "brand": "Neutrogena",
+      "category": "skincare",
+      "subcategory": "moisturizer",
+      "ingredient_list_text": "Water, Dimethicone, Glycerin, Dimethicone/Vinyl Dimethicone Crosspolymer, Phenoxyethanol, Polyacrylamide, Cetearyl Olivate, Sorbitan Olivate, Polyacrylate Crosspolymer-6, Betaine, Caprylyl Glycol, Sodium Hyaluronate, C13-14 Isoparaffin, Laureth-7, Disodium EDTA, Chlorphenesin",
+      "inci_text": "Water, Dimethicone, Glycerin, Dimethicone/Vinyl Dimethicone Crosspolymer, Phenoxyethanol, Polyacrylamide, Cetearyl Olivate, Sorbitan Olivate, Polyacrylate Crosspolymer-6, Betaine, Caprylyl Glycol, Sodium Hyaluronate, C13-14 Isoparaffin, Laureth-7, Disodium EDTA, Chlorphenesin",
+      "source_url": "https://www.neutrogena.com/products/skincare/neutrogena-hydro-boost-water-gel-with-hyaluronic-acid/6811047",
+      "raw_payload": {
+        "original_category": "moisturizer",
+        "notes": "Ingredient list cross-referenced from Neutrogena product page and INCIDecoder"
+      }
+    },
+    {
+      "external_product_id": "genspark-004",
+      "product_name": "Regenerist Micro-Sculpting Cream Moisturizer",
+      "brand": "Olay",
+      "category": "skincare",
+      "subcategory": "moisturizer",
+      "ingredient_list_text": "Water, Glycerin, Isohexadecane, Distarch Phosphate, Niacinamide, Isopropyl Isostearate, Dimethicone, Panthenol, Palmitoyl Dipeptide-7, Palmitoyl Pentapeptide-4, Tripeptide-3, Caprylic/Capric Triglyceride, Ethylhexylglycerin, Hydroxyacetophenone, Butylene Glycol, Dimethiconol, Cetearyl Alcohol, Cetearyl Glucoside, Palmitic Acid, Stearic Acid, Stearyl Alcohol, Cetyl Alcohol, Behenyl Alcohol, Disodium EDTA, Sodium Acrylates Copolymer, PEG-100 Stearate, Phenoxyethanol, Fragrance, Titanium Dioxide, Mica",
+      "inci_text": "Water, Glycerin, Isohexadecane, Distarch Phosphate, Niacinamide, Isopropyl Isostearate, Dimethicone, Panthenol, Palmitoyl Dipeptide-7, Palmitoyl Pentapeptide-4, Tripeptide-3, Caprylic/Capric Triglyceride, Ethylhexylglycerin, Hydroxyacetophenone, Butylene Glycol, Dimethiconol, Cetearyl Alcohol, Cetearyl Glucoside, Palmitic Acid, Stearic Acid, Stearyl Alcohol, Cetyl Alcohol, Behenyl Alcohol, Disodium EDTA, Sodium Acrylates Copolymer, PEG-100 Stearate, Phenoxyethanol, Fragrance, Titanium Dioxide, Mica",
+      "source_url": "https://www.olay.com/en-us/skin-care-products/regenerist-micro-sculpting-cream-moisturizer",
+      "raw_payload": {
+        "original_category": "anti-aging moisturizer",
+        "notes": "Ingredients sourced directly from Olay product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-005",
+      "product_name": "Niacinamide 10% + Zinc 1%",
+      "brand": "The Ordinary",
+      "category": "skincare",
+      "subcategory": "serum",
+      "ingredient_list_text": "Aqua (Water), Niacinamide, Pentylene Glycol, Zinc PCA, Dimethyl Isosorbide, Tamarindus Indica Seed Gum, Xanthan Gum, Isoceteth-20, Ethoxydiglycol, Phenoxyethanol, Chlorphenesin",
+      "inci_text": "Aqua (Water), Niacinamide, Pentylene Glycol, Zinc PCA, Dimethyl Isosorbide, Tamarindus Indica Seed Gum, Xanthan Gum, Isoceteth-20, Ethoxydiglycol, Phenoxyethanol, Chlorphenesin",
+      "source_url": "https://theordinary.com/en-us/niacinamide-10-zinc-1-serum-100436.html",
+      "raw_payload": {
+        "original_category": "serum",
+        "notes": "Ingredients sourced from The Ordinary product page and confirmed via Sephora and Amazon listings"
+      }
+    },
+    {
+      "external_product_id": "genspark-006",
+      "product_name": "Gentle Skin Cleanser",
+      "brand": "Cetaphil",
+      "category": "skincare",
+      "subcategory": "cleanser",
+      "ingredient_list_text": "Water, Glycerin, Cetearyl Alcohol, Panthenol, Niacinamide, Pantolactone, Xanthan Gum, Sodium Cocoyl Isethionate, Sodium Benzoate, Citric Acid",
+      "inci_text": "Water, Glycerin, Cetearyl Alcohol, Panthenol, Niacinamide, Pantolactone, Xanthan Gum, Sodium Cocoyl Isethionate, Sodium Benzoate, Citric Acid",
+      "source_url": "https://www.cetaphil.com/us/products/product-categories/all-cleansers/gentle-skin-cleanser/302990110227.html",
+      "raw_payload": {
+        "original_category": "cleanser",
+        "notes": "Ingredients sourced directly from Cetaphil US product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-007",
+      "product_name": "Fresh Skin Apricot Scrub",
+      "brand": "St. Ives",
+      "category": "skincare",
+      "subcategory": "mask",
+      "ingredient_list_text": "Water (Aqua), Juglans Regia (Walnut) Shell Powder, Glyceryl Stearate SE, Glycerin, Cetearyl Alcohol, Zea Mays (Corn) Kernel Meal, Cetyl Alcohol, Sodium Lauryl Sulfoacetate, Cocamidopropyl Betaine, Glyceryl Stearate, PEG-100 Stearate, Cetyl Acetate, Benzyl Alcohol, Ceteareth-20, Acetylated Lanolin Alcohol, Carbomer, Polysorbate 60, Triethanolamine, Fragrance (Parfum), Disodium EDTA, Benzoic Acid, Sorbic Acid, Prunus Armeniaca (Apricot) Fruit Extract, Titanium Dioxide (CI 77891)",
+      "inci_text": "Water (Aqua), Juglans Regia (Walnut) Shell Powder, Glyceryl Stearate SE, Glycerin, Cetearyl Alcohol, Zea Mays (Corn) Kernel Meal, Cetyl Alcohol, Sodium Lauryl Sulfoacetate, Cocamidopropyl Betaine, Glyceryl Stearate, PEG-100 Stearate, Cetyl Acetate, Benzyl Alcohol, Ceteareth-20, Acetylated Lanolin Alcohol, Carbomer, Polysorbate 60, Triethanolamine, Fragrance (Parfum), Disodium EDTA, Benzoic Acid, Sorbic Acid, Prunus Armeniaca (Apricot) Fruit Extract, Titanium Dioxide (CI 77891)",
+      "source_url": "https://www.stives.com/products/fresh-skin-apricot-scrub",
+      "raw_payload": {
+        "original_category": "face scrub",
+        "notes": "Ingredients sourced directly from St. Ives product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-008",
+      "product_name": "Elvive Total Repair 5 Repairing Shampoo",
+      "brand": "L'Oreal Paris",
+      "category": "haircare",
+      "subcategory": "shampoo",
+      "ingredient_list_text": "Aqua / Water / Eau, Sodium Laureth Sulfate, Sodium Lauryl Sulfate, Cocamide MEA, Glycol Distearate, Sodium Chloride, Dimethicone, Parfum / Fragrance, Citric Acid, PPG-5-Ceteth-20, Sodium Benzoate, Sodium Hydroxide, Coco-Betaine, Salicylic Acid, Guar Hydroxypropyltrimonium Chloride, Carbomer, Linalool, Hexyl Cinnamal, Benzyl Salicylate, Benzyl Alcohol, Hydroxypropyltrimonium Hydrolyzed Wheat Protein, Limonene, Amyl Cinnamal, Coumarin, Citronellol, 2-Oleamido-1,3-Octadecanediol, Prunus Amygdalus Dulcis Oil / Sweet Almond Oil, Alpha-Isomethyl Ionone, Fumaric Acid, Phenoxyethanol",
+      "inci_text": "Aqua / Water / Eau, Sodium Laureth Sulfate, Sodium Lauryl Sulfate, Cocamide MEA, Glycol Distearate, Sodium Chloride, Dimethicone, Parfum / Fragrance, Citric Acid, PPG-5-Ceteth-20, Sodium Benzoate, Sodium Hydroxide, Coco-Betaine, Salicylic Acid, Guar Hydroxypropyltrimonium Chloride, Carbomer, Linalool, Hexyl Cinnamal, Benzyl Salicylate, Benzyl Alcohol, Hydroxypropyltrimonium Hydrolyzed Wheat Protein, Limonene, Amyl Cinnamal, Coumarin, Citronellol, 2-Oleamido-1,3-Octadecanediol, Prunus Amygdalus Dulcis Oil / Sweet Almond Oil, Alpha-Isomethyl Ionone, Fumaric Acid, Phenoxyethanol",
+      "source_url": "https://www.lorealparisusa.com/hair-care-hair-style/shampoo/elvive-total-repair-5-repairing-shampoo",
+      "raw_payload": {
+        "original_category": "shampoo",
+        "notes": "Formula 1101573PT6; ingredients sourced directly from L'Oreal Paris USA product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-009",
+      "product_name": "Elvive Total Repair 5 Repairing Conditioner",
+      "brand": "L'Oreal Paris",
+      "category": "haircare",
+      "subcategory": "conditioner",
+      "ingredient_list_text": "Aqua / Water / Eau, Cetearyl Alcohol, Amodimethicone, Behentrimonium Methosulfate, Behentrimonium Chloride, Parfum / Fragrance, Dipropylene Glycol, Phenoxyethanol, Benzoic Acid, Trideceth-6, Prunus Amygdalus Dulcis Oil / Sweet Almond Oil, Hydroxypropyl Guar, Linalool, Hexyl Cinnamal, Potassium Hydroxide, Benzyl Salicylate, Benzyl Alcohol, Cetrimonium Chloride, Limonene, Hydroxypropyltrimonium Hydrolyzed Wheat Protein, Amyl Cinnamal, Coumarin, Citronellol, 2-Oleamido-1,3-Octadecanediol, Alpha-Isomethyl Ionone, CI 19140 / Yellow 5, CI 15985 / Yellow 6",
+      "inci_text": "Aqua / Water / Eau, Cetearyl Alcohol, Amodimethicone, Behentrimonium Methosulfate, Behentrimonium Chloride, Parfum / Fragrance, Dipropylene Glycol, Phenoxyethanol, Benzoic Acid, Trideceth-6, Prunus Amygdalus Dulcis Oil / Sweet Almond Oil, Hydroxypropyl Guar, Linalool, Hexyl Cinnamal, Potassium Hydroxide, Benzyl Salicylate, Benzyl Alcohol, Cetrimonium Chloride, Limonene, Hydroxypropyltrimonium Hydrolyzed Wheat Protein, Amyl Cinnamal, Coumarin, Citronellol, 2-Oleamido-1,3-Octadecanediol, Alpha-Isomethyl Ionone, CI 19140 / Yellow 5, CI 15985 / Yellow 6",
+      "source_url": "https://www.lorealparisusa.com/hair-care-hair-style/conditioner/elvive-total-repair-5-repairing-conditioner",
+      "raw_payload": {
+        "original_category": "conditioner",
+        "notes": "Formula 1067691PT10; ingredients sourced directly from L'Oreal Paris USA product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-010",
+      "product_name": "Moisture Rich Shampoo",
+      "brand": "TRESemmé",
+      "category": "haircare",
+      "subcategory": "shampoo",
+      "ingredient_list_text": "Water, Sodium Laureth Sulfate, Cocamidopropyl Betaine, Glycerin, Dimethiconol, Tocopherol (Vitamin E), Cyanocobalamin (Vitamin B12), Simmondsia Chinensis (Jojoba) Seed Oil, PEG-45M, Carbomer, Guar Hydroxypropyltrimonium Chloride, Cocamide MEA, TEA-Dodecylbenzenesulfonate, TEA-Sulfate, Glycol Distearate, Sodium Chloride, Citric Acid, Disodium EDTA, Sodium Benzoate, Phenoxyethanol, Fragrance, Mica, Titanium Dioxide",
+      "inci_text": "Water, Sodium Laureth Sulfate, Cocamidopropyl Betaine, Glycerin, Dimethiconol, Tocopherol (Vitamin E), Cyanocobalamin (Vitamin B12), Simmondsia Chinensis (Jojoba) Seed Oil, PEG-45M, Carbomer, Guar Hydroxypropyltrimonium Chloride, Cocamide MEA, TEA-Dodecylbenzenesulfonate, TEA-Sulfate, Glycol Distearate, Sodium Chloride, Citric Acid, Disodium EDTA, Sodium Benzoate, Phenoxyethanol, Fragrance, Mica, Titanium Dioxide",
+      "source_url": "https://www.tresemme.com/au/p/moisture-rich-shampoo.html/09300830069712",
+      "raw_payload": {
+        "original_category": "shampoo",
+        "notes": "Ingredients sourced from TRESemmé AU product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-011",
+      "product_name": "Pro-V Classic Clean Conditioner",
+      "brand": "Pantene",
+      "category": "haircare",
+      "subcategory": "conditioner",
+      "ingredient_list_text": "Water, Stearyl Alcohol, Stearamidopropyl Dimethylamine, Cetyl Alcohol, Glutamic Acid, Bis-Aminopropyl Dimethicone, Fragrance, Benzyl Alcohol, Citric Acid, Disodium EDTA, Histidine, Panthenol, Panthenyl Ethyl Ether, Methylchloroisothiazolinone, Methylisothiazolinone",
+      "inci_text": "Water, Stearyl Alcohol, Stearamidopropyl Dimethylamine, Cetyl Alcohol, Glutamic Acid, Bis-Aminopropyl Dimethicone, Fragrance, Benzyl Alcohol, Citric Acid, Disodium EDTA, Histidine, Panthenol, Panthenyl Ethyl Ether, Methylchloroisothiazolinone, Methylisothiazolinone",
+      "source_url": "https://www.ewg.org/skindeep/products/1010967-Pantene_ProV_Classic_Clean_Conditioner/",
+      "raw_payload": {
+        "original_category": "conditioner",
+        "notes": "Ingredients sourced from EWG Skin Deep database; confirmed from product packaging label"
+      }
+    },
+    {
+      "external_product_id": "genspark-012",
+      "product_name": "Fit Me Matte + Poreless Foundation",
+      "brand": "Maybelline",
+      "category": "makeup",
+      "subcategory": "foundation",
+      "ingredient_list_text": "Aqua / Water / Eau, Cyclohexasiloxane, Nylon-12, Isododecane, Alcohol Denat., Cyclopentasiloxane, PEG-10 Dimethicone, Cetyl PEG/PPG-10/1 Dimethicone, PEG-20 Polyglyceryl-4 Isostearate, Disteardimonium Hectorite, Phenoxyethanol, Magnesium Sulfate, Disodium Stearoyl Glutamate, HDI/Trimethylol Hexyllactone Crosspolymer, Titanium Dioxide, Methylparaben, Acrylates Copolymer, Tocopherol, Butylparaben, Aluminum Hydroxide, Alumina, Silica, Glycerin, CI 77891 / Titanium Dioxide, CI 77491, CI 77492, CI 77499 / Iron Oxides",
+      "inci_text": "Aqua / Water / Eau, Cyclohexasiloxane, Nylon-12, Isododecane, Alcohol Denat., Cyclopentasiloxane, PEG-10 Dimethicone, Cetyl PEG/PPG-10/1 Dimethicone, PEG-20 Polyglyceryl-4 Isostearate, Disteardimonium Hectorite, Phenoxyethanol, Magnesium Sulfate, Disodium Stearoyl Glutamate, HDI/Trimethylol Hexyllactone Crosspolymer, Titanium Dioxide, Methylparaben, Acrylates Copolymer, Tocopherol, Butylparaben, Aluminum Hydroxide, Alumina, Silica, Glycerin, CI 77891 / Titanium Dioxide, CI 77491, CI 77492, CI 77499 / Iron Oxides",
+      "source_url": "https://www.maybelline.com/face-makeup/foundation-makeup/fit-me-matte-poreless-foundation",
+      "raw_payload": {
+        "original_category": "foundation",
+        "notes": "Formula G853331; ingredients sourced directly from Maybelline product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-013",
+      "product_name": "Voluminous Original Washable Bold Eye Mascara",
+      "brand": "L'Oreal Paris",
+      "category": "makeup",
+      "subcategory": "mascara",
+      "ingredient_list_text": "Aqua / Water / Eau, Paraffin, Potassium Cetyl Phosphate, Cera Alba / Beeswax / Cire Dabeille, Copernicia Cerifera Cera / Carnauba Wax / Cire De Carnauba, Acacia Senegal Gum, Cetyl Alcohol, Glycerin, Hydroxyethylcellulose, Phenoxyethanol, PEG/PPG-17/18 Dimethicone, Steareth-20, Silica, Phenethyl Alcohol, Sodium Polymethacrylate, Hydrogenated Jojoba Oil, Hydrogenated Palm Oil, Polyquaternium-10, Disodium EDTA, Tin Oxide, Panthenol, BHT, Ultramarines, Mica, Carmine, Titanium Dioxide",
+      "inci_text": "Aqua / Water / Eau, Paraffin, Potassium Cetyl Phosphate, Cera Alba / Beeswax / Cire Dabeille, Copernicia Cerifera Cera / Carnauba Wax / Cire De Carnauba, Acacia Senegal Gum, Cetyl Alcohol, Glycerin, Hydroxyethylcellulose, Phenoxyethanol, PEG/PPG-17/18 Dimethicone, Steareth-20, Silica, Phenethyl Alcohol, Sodium Polymethacrylate, Hydrogenated Jojoba Oil, Hydrogenated Palm Oil, Polyquaternium-10, Disodium EDTA, Tin Oxide, Panthenol, BHT, Ultramarines, Mica, Carmine, Titanium Dioxide",
+      "source_url": "https://www.lorealparisusa.com/makeup/eye/mascara/voluminous-original-washable-bold-eye-mascara",
+      "raw_payload": {
+        "original_category": "eye mascara",
+        "notes": "Ingredients sourced directly from L'Oreal Paris USA product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-014",
+      "product_name": "Beeswax Lip Balm with Vitamin E & Peppermint",
+      "brand": "Burt's Bees",
+      "category": "lip_care",
+      "subcategory": "lip_treatment",
+      "ingredient_list_text": "Beeswax, Cocos Nucifera (Coconut) Oil, Helianthus Annuus (Sunflower) Seed Oil, Mentha Piperita (Peppermint) Oil, Lanolin, Tocopherol, Rosmarinus Officinalis (Rosemary) Leaf Extract",
+      "inci_text": "Beeswax, Cocos Nucifera (Coconut) Oil, Helianthus Annuus (Sunflower) Seed Oil, Mentha Piperita (Peppermint) Oil, Lanolin, Tocopherol, Rosmarinus Officinalis (Rosemary) Leaf Extract",
+      "source_url": "https://www.burtsbees.com/product/beeswax-lip-balm/",
+      "raw_payload": {
+        "original_category": "lip balm",
+        "notes": "Ingredients cross-referenced from Burt's Bees product page, INCIDecoder, and retailer listings"
+      }
+    },
+    {
+      "external_product_id": "genspark-015",
+      "product_name": "Ultra Sheer Dry-Touch Broad Spectrum Max SPF 100+ Body Sunscreen",
+      "brand": "Neutrogena",
+      "category": "sun_care",
+      "subcategory": "sunscreen",
+      "ingredient_list_text": "Avobenzone (3%), Homosalate (15%), Octisalate (5%), Octocrylene (10%), Water, Ethylhexyl Methoxycrylene, Styrene/Acrylates Copolymer, Copernicia Cerifera (Carnauba) Wax, Hydrogenated Castor Oil, Silica, Triacontanyl PVP, Potassium Cetyl Phosphate, Caprylyl Methicone, Aluminum Starch Octenylsuccinate, Glyceryl Stearate, PEG-100 Stearate, Cetyl Dimethicone, Dimethicone, Phenoxyethanol, Caprylyl Glycol, Ethylhexylglycerin, Acrylates/Dimethicone Copolymer, Xanthan Gum, Chlorphenesin, Sodium Polyacrylate, Hydrolyzed Jojoba Esters, Disodium EDTA, Ethylhexyl Stearate, Tocopheryl Acetate, Jojoba Esters, Trideceth-6, Chrysanthemum Parthenium (Feverfew) Flower/Leaf/Stem Juice",
+      "inci_text": "Avobenzone (3%), Homosalate (15%), Octisalate (5%), Octocrylene (10%), Water, Ethylhexyl Methoxycrylene, Styrene/Acrylates Copolymer, Copernicia Cerifera (Carnauba) Wax, Hydrogenated Castor Oil, Silica, Triacontanyl PVP, Potassium Cetyl Phosphate, Caprylyl Methicone, Aluminum Starch Octenylsuccinate, Glyceryl Stearate, PEG-100 Stearate, Cetyl Dimethicone, Dimethicone, Phenoxyethanol, Caprylyl Glycol, Ethylhexylglycerin, Acrylates/Dimethicone Copolymer, Xanthan Gum, Chlorphenesin, Sodium Polyacrylate, Hydrolyzed Jojoba Esters, Disodium EDTA, Ethylhexyl Stearate, Tocopheryl Acetate, Jojoba Esters, Trideceth-6, Chrysanthemum Parthenium (Feverfew) Flower/Leaf/Stem Juice",
+      "source_url": "https://www.neutrogena.com/products/sun/neutrogena-ultra-sheer-dry-touch-broad-spectrum-max-spf-100-body-sunscreen/6807848",
+      "raw_payload": {
+        "original_category": "sunscreen",
+        "notes": "Active and inactive ingredients sourced from Kenvue Pro product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-016",
+      "product_name": "Intensive Care Deep Restore Body Lotion",
+      "brand": "Vaseline",
+      "category": "body_care",
+      "subcategory": "moisturizer",
+      "ingredient_list_text": "Water, Glycerin, Stearic Acid, Isopropyl Myristate, Mineral Oil, Glyceryl Stearate, Glycol Stearate, Dimethicone, PEG-100 Stearate, Petrolatum, Cetyl Alcohol, Magnesium Aluminum Silicate, Tapioca Starch, Acrylates/C10-30 Alkyl Acrylate Crosspolymer, Fragrance, Xanthan Gum, Stearamide AMP, Disodium EDTA, Helianthus Annuus (Sunflower) Seed Oil, Avena Sativa (Oat) Straw Extract, Propylene Glycol, Lactic Acid, Phenoxyethanol, Methylparaben, Propylparaben, Titanium Dioxide, Quartz",
+      "inci_text": "Water, Glycerin, Stearic Acid, Isopropyl Myristate, Mineral Oil, Glyceryl Stearate, Glycol Stearate, Dimethicone, PEG-100 Stearate, Petrolatum, Cetyl Alcohol, Magnesium Aluminum Silicate, Tapioca Starch, Acrylates/C10-30 Alkyl Acrylate Crosspolymer, Fragrance, Xanthan Gum, Stearamide AMP, Disodium EDTA, Helianthus Annuus (Sunflower) Seed Oil, Avena Sativa (Oat) Straw Extract, Propylene Glycol, Lactic Acid, Phenoxyethanol, Methylparaben, Propylparaben, Titanium Dioxide, Quartz",
+      "source_url": "https://www.vaseline.com/au/en/p/vaseline-deep-restore-body-lotion.html/09400562431235",
+      "raw_payload": {
+        "original_category": "body lotion",
+        "notes": "Ingredients sourced directly from Vaseline AU product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-017",
+      "product_name": "Deep Moisture Body Wash",
+      "brand": "Dove",
+      "category": "personal_care",
+      "subcategory": "cleanser",
+      "ingredient_list_text": "Water (Eau), Lauric Acid, Sodium Lauroyl Isethionate, Sodium Methyl Lauroyl Taurate, Cocamidopropyl Betaine, Sodium Hydroxypropyl Starch Phosphate, Hydrogenated Soybean Oil, Sodium Chloride, Glycine Soja (Soybean) Oil, Fragrance (Parfum), Glycerin, Stearic Acid, Palmitic Acid, Hydrogenated Vegetable Glycerides, Glyceryl Stearate, Hydroxystearic Acid, Sodium Benzoate, Guar Hydroxypropyltrimonium Chloride, Capryloyl Glycine, Undecylenoyl Glycine, Citric Acid, Sodium Gluconate, Alpha-Isomethyl Ionone, Benzyl Alcohol, Citronellol, Coumarin, Hexyl Cinnamal, Limonene, Linalool",
+      "inci_text": "Water (Eau), Lauric Acid, Sodium Lauroyl Isethionate, Sodium Methyl Lauroyl Taurate, Cocamidopropyl Betaine, Sodium Hydroxypropyl Starch Phosphate, Hydrogenated Soybean Oil, Sodium Chloride, Glycine Soja (Soybean) Oil, Fragrance (Parfum), Glycerin, Stearic Acid, Palmitic Acid, Hydrogenated Vegetable Glycerides, Glyceryl Stearate, Hydroxystearic Acid, Sodium Benzoate, Guar Hydroxypropyltrimonium Chloride, Capryloyl Glycine, Undecylenoyl Glycine, Citric Acid, Sodium Gluconate, Alpha-Isomethyl Ionone, Benzyl Alcohol, Citronellol, Coumarin, Hexyl Cinnamal, Limonene, Linalool",
+      "source_url": "https://www.dove.com/ca/en/p/deep-moisture-body-wash.html/00011111124257",
+      "raw_payload": {
+        "original_category": "body wash",
+        "notes": "Ingredients sourced directly from Dove Canada product page"
+      }
+    },
+    {
+      "external_product_id": "genspark-018",
+      "product_name": "Daily Moisturizing Body Lotion with Soothing Oat",
+      "brand": "Aveeno",
+      "category": "body_care",
+      "subcategory": "moisturizer",
+      "ingredient_list_text": "Water, Glycerin, Distearyldimonium Chloride, Petrolatum, Isopropyl Palmitate, Cetyl Alcohol, Avena Sativa (Oat) Kernel Flour, Dimethicone, Benzaldehyde, Benzyl Benzoate, Linalool, Isopropyl Isostearate, Sodium Chloride, Benzyl Alcohol",
+      "inci_text": "Water, Glycerin, Distearyldimonium Chloride, Petrolatum, Isopropyl Palmitate, Cetyl Alcohol, Avena Sativa (Oat) Kernel Flour, Dimethicone, Benzaldehyde, Benzyl Benzoate, Linalool, Isopropyl Isostearate, Sodium Chloride, Benzyl Alcohol",
+      "source_url": "https://www.aveeno.com/products/daily-moisturizing-lotion-with-soothing-oat",
+      "raw_payload": {
+        "original_category": "body lotion",
+        "notes": "Classic Aveeno Daily Moisturizing Lotion formula; ingredient list cross-referenced from EWG and retailer databases"
+      }
+    },
+    {
+      "external_product_id": "genspark-019",
+      "product_name": "Toleriane Double Repair Matte Face Moisturizer for Oily Skin",
+      "brand": "La Roche-Posay",
+      "category": "skincare",
+      "subcategory": "moisturizer",
+      "ingredient_list_text": "Aqua / Water / Eau, Glycerin, Silica, Betaine, Niacinamide, Cetearyl Isononanoate, Zea Mays Starch / Corn Starch, Ceramide NP, Carbomer, Dimethicone, Sodium Hydroxide, Phenoxyethanol, Caprylyl Glycol, Disodium EDTA, Xanthan Gum, Capryloyl Glycine, Tocopherol",
+      "inci_text": "Aqua / Water / Eau, Glycerin, Silica, Betaine, Niacinamide, Cetearyl Isononanoate, Zea Mays Starch / Corn Starch, Ceramide NP, Carbomer, Dimethicone, Sodium Hydroxide, Phenoxyethanol, Caprylyl Glycol, Disodium EDTA, Xanthan Gum, Capryloyl Glycine, Tocopherol",
+      "source_url": "https://www.laroche-posay.us/our-products/face/face-moisturizer/toleriane-double-repair-matte-face-moisturizer-for-oily-skin-3337875782999.html",
+      "raw_payload": {
+        "original_category": "facial moisturizer/treatment",
+        "notes": "Full ingredient list confirmed from La Roche-Posay US product page snippet"
+      }
+    },
+    {
+      "external_product_id": "genspark-020",
+      "product_name": "Moisture Rich Conditioner",
+      "brand": "TRESemmé",
+      "category": "haircare",
+      "subcategory": "conditioner",
+      "ingredient_list_text": "Water, Sodium Laureth Sulfate, Cocamidopropyl Betaine, Glycerin, Carbomer, Citric Acid, Cocamide MEA, Dimethiconol, Disodium EDTA, Glycol Distearate, Guar Hydroxypropyltrimonium Chloride, Sodium Benzoate, Phenoxyethanol, Fragrance, Mica, Titanium Dioxide",
+      "inci_text": "Water, Sodium Laureth Sulfate, Cocamidopropyl Betaine, Glycerin, Carbomer, Citric Acid, Cocamide MEA, Dimethiconol, Disodium EDTA, Glycol Distearate, Guar Hydroxypropyltrimonium Chloride, Sodium Benzoate, Phenoxyethanol, Fragrance, Mica, Titanium Dioxide",
+      "source_url": "https://www.tresemme.com/arabia/en/p/moisture-rich-shampoo.html/05012254063156",
+      "raw_payload": {
+        "original_category": "conditioner",
+        "notes": "Ingredients sourced from TRESemmé Arabia product page listing"
+      }
+    }
+  ]
+}
