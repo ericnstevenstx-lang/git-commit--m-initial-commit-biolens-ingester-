@@ -56,6 +56,8 @@ export async function runMapIngredients(opts: {
   const log = opts.log ?? ((m: string) => console.log(m));
   const source = opts.source ?? "ewg";
 
+  log("NEW mapIngredients.ts LOADED");
+
   let mapped = 0;
   let updated = 0;
   let batchNumber = 0;
@@ -153,12 +155,7 @@ export async function runMapIngredients(opts: {
       }
     }
 
-    log(
-      `Batch ${batchNumber}: ${mapRows.length} mapped, ${idsToMark.length} marked; total mapped ${mapped}.`
-    );
-
-    // No offset increment here on purpose:
-    // each loop re-reads the next current batch of remaining parsed rows.
+    log(`Batch ${batchNumber}: ${mapRows.length} mapped, ${idsToMark.length} marked; total mapped ${mapped}.`);
   }
 
   log(`Done. Mapped: ${mapped}, rows marked mapped: ${updated}.`);
