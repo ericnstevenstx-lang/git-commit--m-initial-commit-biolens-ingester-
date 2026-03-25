@@ -22,10 +22,7 @@ async function fetchLookupWithRetry(
         .select("normalized_alias, material_id")
         .in("normalized_alias", tokens);
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
+      if (error) throw new Error(error.message);
       return data ?? [];
     } catch (err) {
       lastErr = err;
@@ -61,17 +58,25 @@ export async function runMapIngredients(opts: {
   let mapped = 0;
   let updated = 0;
   let batchNumber = 0;
+  let lastSeenId: string | null = null;
 
   while (true) {
     batchNumber += 1;
 
-    const { data: ingredients, error: listErr } = await supabase
+    let query = supabase
       .from("source_product_ingredients_raw")
       .select("id, normalized_token")
       .eq("source", source)
       .eq("parse_status", "parsed")
       .not("normalized_token", "is", null)
-      .range(0, BATCH_SIZE - 1);
+      .order("id", { ascending: true })
+      .limit(BATCH_SIZE);
+
+    if (lastSeenId) {
+      query = query.gt("id", lastSeenId);
+    }
+
+    const { data: ingredients, error: listErr } = await query;
 
     if (listErr) {
       log(`Error listing ingredients: ${listErr.message}`);
@@ -81,6 +86,8 @@ export async function runMapIngredients(opts: {
     if (!ingredients?.length) {
       break;
     }
+
+    lastSeenId = ingredients[ingredients.length - 1].id;
 
     const tokens = [
       ...new Set(
