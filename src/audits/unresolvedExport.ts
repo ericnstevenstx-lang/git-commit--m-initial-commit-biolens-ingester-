@@ -1,6 +1,6 @@
 // apps/ingester-node/src/audits/unresolvedExport.ts
 // If you keep the current flat repo structure, use: src/audits/unresolvedExport.ts
-
+import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
