@@ -7,19 +7,27 @@
     "ingest:cosmetics": "tsx src/scripts/runIngestCosmetics.ts",
     "explode:ingredients": "tsx src/scripts/runExplodeIngredients.ts",
     "map:ingredients": "tsx src/scripts/runMapIngredients.ts",
-    "export:audit": "tsx src/scripts/runExportAudit.ts"
+    "export:audit": "tsx src/scripts/runExportAudit.ts",
+
+    "enqueue:resolver-jobs": "tsx src/scripts/enqueueResolverJobs.ts",
+    "resolver:worker": "tsx src/workers/runCanonicalResolver.ts",
+    "audit:unresolved": "tsx src/audits/unresolvedExport.ts",
+    "audit:identifier-conflicts": "tsx src/audits/identifierConflictExport.ts",
+
+    "audit:all": "npm run audit:unresolved && npm run audit:identifier-conflicts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "cheerio": "^1.0.0",
     "csv-stringify": "^6.5.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@vercel/node": "^3.2.0",
-    "typescript": "^5.6.0",
-    "tsx": "^4.19.0"
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
   },
   "engines": {
     "node": ">=18"
