@@ -1,6 +1,6 @@
 // apps/ingester-node/src/scripts/enqueueResolverJobs.ts
 // If you keep the current flat repo structure, use: src/scripts/enqueueResolverJobs.ts
-
+import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
