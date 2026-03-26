@@ -1,15 +1,22 @@
 /**
  * Pipeline: Resolve Origin
  *
- * Iterates source_products_raw rows that have a gtin/barcode
+ * Iterates source_products_raw rows that have a gtin/barcode/upc
  * but no country_of_origin. Resolves via GS1 prefix table.
  *
  * Idempotent: only processes rows with null country_of_origin.
  */
+
 import { supabase } from '../supabase.js';
 import { batchResolveGTINs } from '../connectors/gs1Prefix.js';
 
 const BATCH_SIZE = Number(process.env.BATCH_SIZE) || 100;
+
+function toTextArray(value: string | null | undefined): string[] | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed ? [trimmed] : null;
+}
 
 export async function resolveOrigins(): Promise<void> {
   let totalResolved = 0;
@@ -18,8 +25,8 @@ export async function resolveOrigins(): Promise<void> {
   while (true) {
     const { data: rows, error } = await supabase
       .from('source_products_raw')
-      .select('id, gtin, barcode, raw_payload')
-      .or('gtin.not.is.null,barcode.not.is.null')
+      .select('id, gtin, barcode, upc, raw_payload')
+      .or('gtin.not.is.null,barcode.not.is.null,upc.not.is.null')
       .is('country_of_origin', null)
       .range(offset, offset + BATCH_SIZE - 1);
 
@@ -33,11 +40,14 @@ export async function resolveOrigins(): Promise<void> {
       break;
     }
 
-    console.log(`[resolveOrigin] Processing batch of ${rows.length} at offset ${offset}`);
+    console.log(
+      `[resolveOrigin] Processing batch of ${rows.length} at offset ${offset}`
+    );
 
     const gtinEntries: { id: string; gtin: string }[] = [];
+
     for (const row of rows) {
-      const gtin = row.gtin || row.barcode;
+      const gtin = row.gtin || row.barcode || row.upc;
       if (gtin && gtin.length >= 8) {
         gtinEntries.push({ id: row.id, gtin });
       }
@@ -77,7 +87,7 @@ export async function resolveOrigins(): Promise<void> {
       const { error: updateError } = await supabase
         .from('source_products_raw')
         .update({
-          country_of_origin: resolution.country_code,
+          country_of_origin: toTextArray(resolution.country_code),
           raw_payload: updatedPayload,
         })
         .eq('id', entry.id);
@@ -89,11 +99,13 @@ export async function resolveOrigins(): Promise<void> {
         );
       } else {
         totalResolved++;
+
         if (resolution.feoc_flagged) {
           console.log(
             `[resolveOrigin] FEOC FLAG: ${entry.gtin} -> ${resolution.country_name} (${resolution.country_code})`
           );
         }
+
         if (resolution.uflpa_risk) {
           console.log(
             `[resolveOrigin] UFLPA RISK: ${entry.gtin} -> ${resolution.country_name} (${resolution.country_code})`
