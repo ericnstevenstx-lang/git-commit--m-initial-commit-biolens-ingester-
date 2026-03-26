@@ -1,4 +1,4 @@
-import { ingestByCategories } from '../pipelines/ingestOpenFoodFacts';
+import { ingestByCategories } from '../pipelines/ingestOpenFoodFacts.js';
 
 (async () => {
   console.log('=== BioLens: Ingest Open Food Facts ===');

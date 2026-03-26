@@ -1,4 +1,4 @@
-import { generateStandardComparisons } from '../pipelines/computeTariff';
+import { generateStandardComparisons } from '../pipelines/computeTariff.js';
 
 (async () => {
   console.log('=== BioLens: Compute Tariff Comparisons ===');

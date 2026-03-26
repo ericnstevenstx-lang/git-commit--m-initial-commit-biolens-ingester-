@@ -1,4 +1,4 @@
-import { enrichChemicals } from '../pipelines/enrichChemicals';
+import { enrichChemicals } from '../pipelines/enrichChemicals.js';
 
 (async () => {
   console.log('=== BioLens: Enrich Chemicals (CPDat + PubChem) ===');

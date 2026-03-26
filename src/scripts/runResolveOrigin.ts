@@ -1,4 +1,4 @@
-import { resolveOrigins } from '../pipelines/resolveOrigin';
+import { resolveOrigins } from '../pipelines/resolveOrigin.js';
 
 (async () => {
   console.log('=== BioLens: Resolve Origins ===');

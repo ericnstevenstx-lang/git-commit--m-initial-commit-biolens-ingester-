@@ -1,4 +1,4 @@
-import { classifyMaterials } from '../pipelines/classifyHTS';
+import { classifyMaterials } from '../pipelines/classifyHTS.js';
 
 (async () => {
   console.log('=== BioLens: Classify HTS Codes ===');
