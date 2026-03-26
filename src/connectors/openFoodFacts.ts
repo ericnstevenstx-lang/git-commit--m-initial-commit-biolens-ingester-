@@ -5,23 +5,21 @@
  *
  * API docs: https://openfoodfacts.github.io/openfoodfacts-server/api/
  */
-import { config } from '../config';
 
 const OFF_API_BASE = 'https://world.openfoodfacts.org/api/v2';
 const OPF_API_BASE = 'https://world.openproductsfacts.org/api/v2';
 
-// Default 600ms between requests = ~100/min
 const RATE_LIMIT_MS = Number(process.env.OFF_RATE_LIMIT_MS) || 600;
 
 export interface OFFProduct {
-  code: string;                          // barcode / GTIN
+  code: string;
   product_name: string | null;
   brands: string | null;
   categories_tags_en: string[];
   ingredients_text: string | null;
   ingredients_text_en: string | null;
-  countries_tags: string[];              // e.g. ['en:united-states', 'en:france']
-  origins: string | null;                // origin of ingredients
+  countries_tags: string[];
+  origins: string | null;
   manufacturing_places: string | null;
   stores: string | null;
   labels: string | null;
@@ -31,17 +29,13 @@ export interface OFFProduct {
   nutriscore_grade: string | null;
   ecoscore_grade: string | null;
   nova_group: number | null;
-  raw: Record<string, unknown>;          // full API response for raw_payload
+  raw: Record<string, unknown>;
 }
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * Normalize OFF country tags to ISO 3166-1 alpha-2.
- * OFF uses 'en:united-states', 'en:france' format.
- */
 const COUNTRY_TAG_MAP: Record<string, string> = {
   'en:united-states': 'US',
   'en:france': 'FR',
@@ -120,9 +114,6 @@ function parseProduct(raw: Record<string, unknown>): OFFProduct {
   };
 }
 
-/**
- * Fetch a single product by barcode from Open Food Facts.
- */
 export async function fetchByBarcode(
   barcode: string,
   useProductsFacts = false
@@ -156,9 +147,6 @@ export async function fetchByBarcode(
   }
 }
 
-/**
- * Search products by query string. Returns up to `pageSize` results.
- */
 export async function searchProducts(
   query: string,
   page = 1,
@@ -197,9 +185,6 @@ export async function searchProducts(
   }
 }
 
-/**
- * Fetch products by category tag. Pages through results.
- */
 export async function fetchByCategory(
   categoryTag: string,
   maxPages = 5,
