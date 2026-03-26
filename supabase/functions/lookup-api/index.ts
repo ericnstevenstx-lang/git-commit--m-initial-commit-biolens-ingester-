@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";const auth
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -62,10 +62,11 @@ async function pubchemPropertyLookupByIdentifier(idType: string, idValue: string
 
 serve(async (req) => {
   try {
-    const auth = req.headers.get("authorization") || "";
-    if (!INTERNAL_FUNCTION_BEARER || auth !== `Bearer ${INTERNAL_FUNCTION_BEARER}`) {
-      return unauthorized();
-    }
+  const internalBearer = req.headers.get("x-internal-bearer") || "";
+  if (!INTERNAL_FUNCTION_BEARER || internalBearer !== INTERNAL_FUNCTION_BEARER) {
+  return unauthorized();
+}
+
 
     const body = await req.json();
     const queryText = String(body.query_text || "").trim();
