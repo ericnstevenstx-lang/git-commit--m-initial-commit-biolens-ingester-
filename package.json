@@ -8,6 +8,11 @@
     "explode:ingredients": "tsx src/scripts/runExplodeIngredients.ts",
     "map:ingredients": "tsx src/scripts/runMapIngredients.ts",
     "export:audit": "tsx src/scripts/runExportAudit.ts",
+    "ingest:off": "ts-node src/scripts/runIngestOFF.ts",
+    "resolve:origin": "ts-node src/scripts/runResolveOrigin.ts",
+    "enrich:chemicals": "ts-node src/scripts/runEnrichChemicals.ts",
+    "classify:hts": "ts-node src/scripts/runClassifyHTS.ts",
+    "compute:tariff": "ts-node src/scripts/runComputeTariff.ts"
 
     "enqueue:resolver-jobs": "tsx src/scripts/enqueueResolverJobs.ts",
     "resolver:worker": "tsx src/workers/runCanonicalResolver.ts",
