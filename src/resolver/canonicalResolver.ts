@@ -254,10 +254,10 @@ export class CanonicalResolver {
   }): Promise<ResolveCandidate[]> {
     const res = await fetch(this.env.LOOKUP_API_URL, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${this.env.INTERNAL_FUNCTION_BEARER}`,
-      },
+   headers: {
+  "content-type": "application/json",
+  "x-internal-bearer": this.env.INTERNAL_FUNCTION_BEARER,
+},
       body: JSON.stringify({
         query_text: input.queryText,
         identifiers: input.identifiers,
