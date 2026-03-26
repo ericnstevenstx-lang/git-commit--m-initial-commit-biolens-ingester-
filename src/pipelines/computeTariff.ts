@@ -5,9 +5,10 @@
  * and tariff rates, computes effective duty including Section 301,
  * checks FEOC/UFLPA flags, and caches results for FiberFoundry.
  *
- * Can be run for specific pairs or all classified materials.
+ * Column mapping (materials table):
+ *   material_name = product/ingredient name
  */
-import { supabase } from '../supabase';
+import { supabase } from '../supabase.js';
 
 interface TariffLookup {
   material_id: string;
@@ -22,23 +23,18 @@ interface TariffLookup {
   baba_eligible: boolean;
 }
 
-/**
- * Look up tariff rate for a material from a specific country.
- */
 async function lookupTariff(
   materialId: string,
   originCountry: string
 ): Promise<TariffLookup | null> {
-  // Get material name
   const { data: material } = await supabase
     .from('materials')
-    .select('id, name')
+    .select('id, material_name')
     .eq('id', materialId)
     .single();
 
   if (!material) return null;
 
-  // Get HTS classification (highest confidence)
   const { data: classification } = await supabase
     .from('material_hts_classifications')
     .select('hts_code, confidence')
@@ -48,11 +44,10 @@ async function lookupTariff(
     .maybeSingle();
 
   if (!classification) {
-    console.log(`[tariff] No HTS classification for ${material.name}`);
+    console.log(`[tariff] No HTS classification for ${material.material_name}`);
     return null;
   }
 
-  // Get tariff rate
   const { data: rate } = await supabase
     .from('hts_tariff_rates')
     .select('*')
@@ -60,14 +55,10 @@ async function lookupTariff(
     .maybeSingle();
 
   if (!rate) {
-    console.log(
-      `[tariff] No rate data for HTS ${classification.hts_code}`
-    );
+    console.log(`[tariff] No rate data for HTS ${classification.hts_code}`);
     return null;
   }
 
-  // Check FEOC/UFLPA for origin country via GS1 prefix table
-  // (checking any prefix for this country)
   const { data: countryFlags } = await supabase
     .from('gs1_country_prefixes')
     .select('feoc_flagged, uflpa_risk')
@@ -78,21 +69,15 @@ async function lookupTariff(
   const feocFlagged = countryFlags?.feoc_flagged || false;
   const uflpaRisk = countryFlags?.uflpa_risk || false;
 
-  // Section 301 applies to China-origin products
   const section301Applies = originCountry === 'CN';
-  const section301Rate = section301Applies
-    ? (rate.section_301_rate_pct || 0)
-    : 0;
-
+  const section301Rate = section301Applies ? (rate.section_301_rate_pct || 0) : 0;
   const generalRate = rate.general_rate_pct || 0;
   const effectiveRate = generalRate + section301Rate;
-
-  // BABA eligible = US origin + not FEOC flagged
   const babaEligible = originCountry === 'US' && !feocFlagged;
 
   return {
     material_id: materialId,
-    material_name: material.name,
+    material_name: material.material_name,
     hts_code: classification.hts_code,
     origin_country: originCountry,
     general_rate_pct: generalRate,
@@ -104,9 +89,6 @@ async function lookupTariff(
   };
 }
 
-/**
- * Compute and cache a tariff comparison between two materials.
- */
 export async function computeComparison(
   materialAId: string,
   originA: string,
@@ -121,8 +103,6 @@ export async function computeComparison(
     return;
   }
 
-  // Landed cost delta: how much more expensive is B vs A after tariffs
-  // Positive = B is more expensive, negative = A is more expensive
   const delta = tariffB.effective_rate_pct - tariffA.effective_rate_pct;
 
   const { error } = await supabase.from('tariff_comparisons').upsert(
@@ -160,18 +140,12 @@ export async function computeComparison(
   );
 }
 
-/**
- * Auto-generate comparisons: all bio/natural materials (Ch. 53)
- * vs all petrochemical materials (Ch. 39, 54, 55) for key origin pairs.
- */
 export async function generateStandardComparisons(): Promise<void> {
-  // Get all materials with HTS classifications in natural fiber chapters
   const { data: bioMaterials } = await supabase
     .from('material_hts_classifications')
     .select('material_id, hts_code')
     .or('hts_code.like.53%,hts_code.like.47%');
 
-  // Get all materials in petrochemical chapters
   const { data: petroMaterials } = await supabase
     .from('material_hts_classifications')
     .select('material_id, hts_code')
@@ -186,7 +160,6 @@ export async function generateStandardComparisons(): Promise<void> {
     `[tariff] Generating comparisons: ${bioMaterials.length} bio x ${petroMaterials.length} petro`
   );
 
-  // Standard origin pairs for FiberFoundry comparisons
   const originPairs = [
     { bioOrigin: 'US', petroOrigin: 'CN' },
     { bioOrigin: 'US', petroOrigin: 'VN' },

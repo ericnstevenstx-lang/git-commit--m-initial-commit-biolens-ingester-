@@ -1,19 +1,18 @@
 /**
  * Pipeline: Classify HTS
  *
- * Assigns HTS codes to materials in the materials table based on
- * material category, name, and composition keywords.
- * Uses the hts_tariff_rates table for valid codes.
+ * Assigns HTS codes to materials based on material_name, material_family,
+ * and description keywords. Uses hts_tariff_rates for valid codes.
  *
  * Idempotent: upserts by (material_id, hts_code).
+ *
+ * Column mapping (materials table):
+ *   material_name  = product/ingredient name
+ *   material_family = category grouping
+ *   description    = free text description
  */
-import { supabase } from '../supabase';
+import { supabase } from '../supabase.js';
 
-/**
- * Keyword-based HTS classification rules.
- * Maps material name/category patterns to HTS codes.
- * These are starting heuristics; manual review refines confidence.
- */
 const CLASSIFICATION_RULES: {
   patterns: RegExp[];
   hts_code: string;
@@ -57,7 +56,6 @@ const CLASSIFICATION_RULES: {
     basis: 'composition',
     confidence: 0.80,
   },
-
   // Chapter 47: Pulp
   {
     patterns: [/\bbamboo pulp\b/i, /\bbamboo.*viscose\b/i],
@@ -71,7 +69,6 @@ const CLASSIFICATION_RULES: {
     basis: 'composition',
     confidence: 0.70,
   },
-
   // Chapter 54: Man-made filaments
   {
     patterns: [/\bpolyester.*yarn\b/i, /\bPET.*yarn\b/i],
@@ -91,7 +88,6 @@ const CLASSIFICATION_RULES: {
     basis: 'primary_use',
     confidence: 0.70,
   },
-
   // Chapter 55: Man-made staple fibers
   {
     patterns: [/\bpolyester\b/i, /\bPET\b/i],
@@ -111,7 +107,6 @@ const CLASSIFICATION_RULES: {
     basis: 'composition',
     confidence: 0.70,
   },
-
   // Chapter 39: Plastics
   {
     patterns: [/\bpolyethylene\b/i, /\bHDPE\b/i, /\bLDPE\b/i, /\bPE\b/i],
@@ -140,10 +135,9 @@ const CLASSIFICATION_RULES: {
 ];
 
 export async function classifyMaterials(): Promise<void> {
-  // Fetch all materials
   const { data: materials, error } = await supabase
     .from('materials')
-    .select('id, name, category, description');
+    .select('id, material_name, material_family, description');
 
   if (error || !materials) {
     console.error('[classifyHTS] Failed to fetch materials:', error?.message);
@@ -157,12 +151,11 @@ export async function classifyMaterials(): Promise<void> {
 
   for (const material of materials) {
     const searchText = [
-      material.name || '',
-      material.category || '',
+      material.material_name || '',
+      material.material_family || '',
       material.description || '',
     ].join(' ');
 
-    // Find matching rules (can match multiple HTS codes)
     const matches: {
       hts_code: string;
       basis: string;
@@ -177,7 +170,7 @@ export async function classifyMaterials(): Promise<void> {
             basis: rule.basis,
             confidence: rule.confidence,
           });
-          break; // one match per rule is enough
+          break;
         }
       }
     }
@@ -187,7 +180,6 @@ export async function classifyMaterials(): Promise<void> {
       continue;
     }
 
-    // Upsert each classification
     for (const match of matches) {
       const { error: upsertError } = await supabase
         .from('material_hts_classifications')
@@ -197,14 +189,14 @@ export async function classifyMaterials(): Promise<void> {
             hts_code: match.hts_code,
             classification_basis: match.basis,
             confidence: match.confidence,
-            notes: `Auto-classified from material name/category: "${material.name}"`,
+            notes: `Auto-classified from material name/family: "${material.material_name}"`,
           },
           { onConflict: 'material_id,hts_code' }
         );
 
       if (upsertError) {
         console.error(
-          `[classifyHTS] Upsert error for ${material.name}:`,
+          `[classifyHTS] Upsert error for ${material.material_name}:`,
           upsertError.message
         );
       } else {
@@ -213,7 +205,7 @@ export async function classifyMaterials(): Promise<void> {
     }
 
     console.log(
-      `[classifyHTS] ${material.name}: ${matches.length} HTS code(s) assigned`
+      `[classifyHTS] ${material.material_name}: ${matches.length} HTS code(s) assigned`
     );
   }
 

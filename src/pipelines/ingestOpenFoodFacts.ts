@@ -6,17 +6,22 @@
  * Populates gtin, country_of_origin, manufacturing_places, ingredients.
  *
  * Idempotent: upserts by (source, external_product_id).
+ *
+ * Verified columns against source_products_raw schema:
+ *   registry_source_id, source, external_product_id, barcode, gtin,
+ *   product_name, brand, category, subcategory, quantity, size_text,
+ *   ingredient_list_text, inci_text, country_of_origin, countries_sold,
+ *   manufacturing_places, labels_claims, packaging_text, stores,
+ *   source_url, raw_payload
  */
-import { supabase } from '../supabase';
+import { supabase } from '../supabase.js';
 import {
   fetchByCategory,
   fetchByBarcode,
-  searchProducts,
   normalizeCountryTag,
   OFFProduct,
-} from '../connectors/openFoodFacts';
+} from '../connectors/openFoodFacts.js';
 
-// Categories relevant to BioLens material intelligence
 const TARGET_CATEGORIES = [
   'Cleaning products',
   'Personal care',
@@ -30,9 +35,6 @@ const TARGET_CATEGORIES = [
   'Household products',
 ];
 
-/**
- * Resolve the registry_source_id for 'off' from registry_sources.
- */
 async function getRegistrySourceId(): Promise<string> {
   const { data, error } = await supabase
     .from('registry_sources')
@@ -48,18 +50,12 @@ async function getRegistrySourceId(): Promise<string> {
   return data.id;
 }
 
-/**
- * Convert an OFFProduct to a source_products_raw row shape.
- */
 function toRawRow(product: OFFProduct, registrySourceId: string) {
-  // Resolve first country tag to ISO code for country_of_origin
   let countryOfOrigin: string | null = null;
   if (product.origins) {
-    // origins field is free text, often a country name
     countryOfOrigin = product.origins;
   }
 
-  // countries_sold from countries_tags
   const countriesSold = product.countries_tags
     .map(normalizeCountryTag)
     .filter(Boolean)
@@ -96,9 +92,6 @@ function toRawRow(product: OFFProduct, registrySourceId: string) {
   };
 }
 
-/**
- * Upsert a batch of products into source_products_raw.
- */
 async function upsertBatch(
   rows: ReturnType<typeof toRawRow>[]
 ): Promise<number> {
@@ -120,9 +113,6 @@ async function upsertBatch(
   return data?.length || 0;
 }
 
-/**
- * Main: ingest by category browse.
- */
 export async function ingestByCategories(
   categories: string[] = TARGET_CATEGORIES,
   maxPagesPerCategory = 5,
@@ -133,37 +123,34 @@ export async function ingestByCategories(
 
   for (const category of categories) {
     console.log(`[ingestOFF] Fetching category: ${category}`);
-    const products = await fetchByCategory(
+
+    // Try Open Products Facts first for non-food categories
+    let products = await fetchByCategory(
       category,
       maxPagesPerCategory,
       pageSize,
-      true // use Open Products Facts for non-food
+      true
     );
 
     if (products.length === 0) {
       // Fallback to Open Food Facts
-      const foodProducts = await fetchByCategory(
+      products = await fetchByCategory(
         category,
         maxPagesPerCategory,
         pageSize,
         false
       );
-      products.push(...foodProducts);
     }
 
     console.log(`[ingestOFF] Got ${products.length} products for ${category}`);
 
-    // Filter out products with no ingredients
     const withIngredients = products.filter(
       (p) => p.ingredients_text || p.ingredients_text_en
     );
-    console.log(
-      `[ingestOFF] ${withIngredients.length} have ingredient data`
-    );
+    console.log(`[ingestOFF] ${withIngredients.length} have ingredient data`);
 
     const rows = withIngredients.map((p) => toRawRow(p, registrySourceId));
 
-    // Batch upsert in chunks of 100
     const BATCH = 100;
     for (let i = 0; i < rows.length; i += BATCH) {
       const chunk = rows.slice(i, i + BATCH);
@@ -178,17 +165,11 @@ export async function ingestByCategories(
   console.log(`[ingestOFF] Total ingested: ${totalIngested}`);
 }
 
-/**
- * Ingest by a list of barcodes (e.g. from FiberFoundry product GTINs).
- */
-export async function ingestByBarcodes(
-  barcodes: string[]
-): Promise<void> {
+export async function ingestByBarcodes(barcodes: string[]): Promise<void> {
   const registrySourceId = await getRegistrySourceId();
   let ingested = 0;
 
   for (const barcode of barcodes) {
-    // Try Open Products Facts first, then Open Food Facts
     let product = await fetchByBarcode(barcode, true);
     if (!product) {
       product = await fetchByBarcode(barcode, false);
