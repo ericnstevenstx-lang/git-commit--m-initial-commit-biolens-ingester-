@@ -3,7 +3,7 @@
  * Resolves a GTIN/barcode string to its issuing country
  * using the gs1_country_prefixes table in Supabase.
  */
-import { supabase } from '../supabase';
+import { supabase } from '../supabase.js';
 
 export interface GS1Resolution {
   prefix: string;
@@ -22,13 +22,9 @@ export function extractPrefix(gtin: string): string | null {
   const cleaned = gtin.replace(/\D/g, '');
   if (cleaned.length < 8) return null;
 
-  // GTIN-14: first digit is packaging indicator, prefix is digits 2-4
   if (cleaned.length === 14) return cleaned.substring(1, 4);
-  // GTIN-13 (EAN): prefix is first 3 digits
   if (cleaned.length === 13) return cleaned.substring(0, 3);
-  // GTIN-12 (UPC-A): pad to 13, prefix is '0' + first 2 digits
   if (cleaned.length === 12) return '0' + cleaned.substring(0, 2);
-  // GTIN-8: prefix is first 3 digits (limited range)
   if (cleaned.length === 8) return cleaned.substring(0, 3);
 
   return null;
@@ -36,7 +32,6 @@ export function extractPrefix(gtin: string): string | null {
 
 /**
  * Resolve a GTIN to country info via the gs1_country_prefixes table.
- * Returns null if prefix not found or GTIN is invalid.
  */
 export async function resolveGTIN(gtin: string): Promise<GS1Resolution | null> {
   const prefix = extractPrefix(gtin);
@@ -79,8 +74,7 @@ export async function batchResolveGTINs(
 ): Promise<Map<string, GS1Resolution>> {
   const results = new Map<string, GS1Resolution>();
 
-  // Extract unique prefixes
-  const prefixMap = new Map<string, string[]>(); // prefix -> gtins
+  const prefixMap = new Map<string, string[]>();
   for (const gtin of gtins) {
     const prefix = extractPrefix(gtin);
     if (!prefix) continue;
