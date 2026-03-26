@@ -8,22 +8,21 @@
     "explode:ingredients": "tsx src/scripts/runExplodeIngredients.ts",
     "map:ingredients": "tsx src/scripts/runMapIngredients.ts",
     "export:audit": "tsx src/scripts/runExportAudit.ts",
-    "ingest:off": "ts-node src/scripts/runIngestOFF.ts",
-    "resolve:origin": "ts-node src/scripts/runResolveOrigin.ts",
-    "enrich:chemicals": "ts-node src/scripts/runEnrichChemicals.ts",
-    "classify:hts": "ts-node src/scripts/runClassifyHTS.ts",
-    "compute:tariff": "ts-node src/scripts/runComputeTariff.ts"
-
+    "ingest:off": "tsx src/scripts/runIngestOFF.ts",
+    "resolve:origin": "tsx src/scripts/runResolveOrigin.ts",
+    "enrich:chemicals": "tsx src/scripts/runEnrichChemicals.ts",
+    "classify:hts": "tsx src/scripts/runClassifyHTS.ts",
+    "compute:tariff": "tsx src/scripts/runComputeTariff.ts",
     "enqueue:resolver-jobs": "tsx src/scripts/enqueueResolverJobs.ts",
     "resolver:worker": "tsx src/workers/runCanonicalResolver.ts",
     "audit:unresolved": "tsx src/audits/unresolvedExport.ts",
     "audit:identifier-conflicts": "tsx src/audits/identifierConflictExport.ts",
-
     "audit:all": "npm run audit:unresolved && npm run audit:identifier-conflicts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "cheerio": "^1.0.0",
+    "csv-parse": "^5.6.0",
     "csv-stringify": "^6.5.0",
     "dotenv": "^16.4.5",
     "zod": "^3.24.2"
