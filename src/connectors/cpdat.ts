@@ -3,19 +3,14 @@
  *
  * Two access modes:
  * 1. CTX Exposure API (requires free API key from ccte_api@epa.gov)
- *    - Lookup by DTXSID or CASRN
- *    - Returns functional use categories, product use categories, list presence
- * 2. Bulk CSV parsing from Figshare download
- *    - CPDat v4.0: https://epa.figshare.com/articles/dataset/5352997
- *    - Parse chemical_to_product and functional_use CSVs
+ * 2. Bulk CSV parsing from Figshare download (CPDat v4.0)
  *
  * API docs: https://api-ccte.epa.gov/docs/exposure.html
  */
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { parse } from 'csv-parse/sync';
 
-// CTX API base URL
 const CTX_API_BASE = 'https://api-ccte.epa.gov/exposure';
 const CTX_CHEM_BASE = 'https://api-ccte.epa.gov/chemical';
 const CTX_API_KEY = process.env.CTX_API_KEY || '';
@@ -24,10 +19,6 @@ const RATE_LIMIT_MS = Number(process.env.CTX_RATE_LIMIT_MS) || 500;
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
-// ============================================================
-// Types
-// ============================================================
 
 export interface CPDatFunctionalUse {
   dtxsid: string;
@@ -45,7 +36,7 @@ export interface CPDatProductUse {
   product_category: string;
   product_family: string;
   product_type: string;
-  puc_kind: string; // 'formulation', 'article', 'industrial/occupational'
+  puc_kind: string;
 }
 
 export interface CPDatChemicalRecord {
@@ -63,10 +54,6 @@ export interface ChemicalIdentity {
   molecular_formula: string | null;
 }
 
-// ============================================================
-// CTX API Methods (requires API key)
-// ============================================================
-
 function ctxHeaders(): Record<string, string> {
   if (!CTX_API_KEY) {
     throw new Error(
@@ -79,9 +66,6 @@ function ctxHeaders(): Record<string, string> {
   };
 }
 
-/**
- * Resolve a chemical name or CASRN to a DTXSID via the CTX Chemical API.
- */
 export async function resolveChemical(
   identifier: string
 ): Promise<ChemicalIdentity | null> {
@@ -110,9 +94,6 @@ export async function resolveChemical(
   }
 }
 
-/**
- * Fetch CPDat functional use data for a chemical by DTXSID.
- */
 export async function fetchFunctionalUses(
   dtxsid: string
 ): Promise<CPDatFunctionalUse[]> {
@@ -141,9 +122,6 @@ export async function fetchFunctionalUses(
   }
 }
 
-/**
- * Fetch CPDat product use category data for a chemical by DTXSID.
- */
 export async function fetchProductUses(
   dtxsid: string
 ): Promise<CPDatProductUse[]> {
@@ -173,9 +151,6 @@ export async function fetchProductUses(
   }
 }
 
-/**
- * Full CPDat lookup for a single chemical by DTXSID.
- */
 export async function fetchChemicalRecord(
   dtxsid: string
 ): Promise<CPDatChemicalRecord | null> {
@@ -184,30 +159,16 @@ export async function fetchChemicalRecord(
     fetchProductUses(dtxsid),
   ]);
 
-  if (functionalUses.length === 0 && productUses.length === 0) {
-    return null;
-  }
-
-  const name =
-    functionalUses[0]?.chemical_name ||
-    productUses[0]?.chemical_name ||
-    dtxsid;
-
-  const casrn =
-    functionalUses[0]?.casrn || productUses[0]?.casrn || null;
+  if (functionalUses.length === 0 && productUses.length === 0) return null;
 
   return {
     dtxsid,
-    casrn,
-    chemical_name: name,
+    casrn: functionalUses[0]?.casrn || productUses[0]?.casrn || null,
+    chemical_name: functionalUses[0]?.chemical_name || productUses[0]?.chemical_name || dtxsid,
     functional_uses: functionalUses,
     product_uses: productUses,
   };
 }
-
-// ============================================================
-// Bulk CSV Methods (for offline / Figshare download)
-// ============================================================
 
 export interface BulkChemicalRow {
   dtxsid: string;
@@ -221,14 +182,6 @@ export interface BulkChemicalRow {
   source_document: string;
 }
 
-/**
- * Parse a CPDat bulk CSV export file.
- * Expects columns: DTXSID, CASRN, preferredName (or preferred_name),
- * plus functional use and product category columns.
- *
- * CPDat CSVs from Figshare vary by version. This parser is flexible
- * with column name matching.
- */
 export function parseBulkCSV(filePath: string): BulkChemicalRow[] {
   if (!fs.existsSync(filePath)) {
     console.error(`[cpdat] File not found: ${filePath}`);
@@ -246,17 +199,11 @@ export function parseBulkCSV(filePath: string): BulkChemicalRow[] {
   console.log(`[cpdat] Parsed ${records.length} rows from ${path.basename(filePath)}`);
 
   return records.map((r) => {
-    // Flexible column matching for different CPDat versions
     const dtxsid = r.DTXSID || r.dtxsid || r.dsstox_substance_id || '';
     const casrn = r.CASRN || r.casrn || r.cas_number || '';
     const name = r.preferredName || r.preferred_name || r.chemical_name || '';
-    const funcUse =
-      r.harmonized_functional_use ||
-      r.functional_use ||
-      r.reported_functional_use ||
-      '';
-    const puc =
-      r.PUC || r.puc_name || r.product_use_category || r.gen_cat || '';
+    const funcUse = r.harmonized_functional_use || r.functional_use || r.reported_functional_use || '';
+    const puc = r.PUC || r.puc_name || r.product_use_category || r.gen_cat || '';
     const wfLower = parseFloat(r.weight_fraction_lower || r.lower_weight_fraction || '');
     const wfUpper = parseFloat(r.weight_fraction_upper || r.upper_weight_fraction || '');
     const wfPred = parseFloat(r.weight_fraction_predicted || r.predicted_weight_fraction || '');
@@ -276,14 +223,8 @@ export function parseBulkCSV(filePath: string): BulkChemicalRow[] {
   });
 }
 
-/**
- * Build a lookup map from chemical name -> CPDat rows for fast matching.
- */
-export function buildNameIndex(
-  rows: BulkChemicalRow[]
-): Map<string, BulkChemicalRow[]> {
+export function buildNameIndex(rows: BulkChemicalRow[]): Map<string, BulkChemicalRow[]> {
   const index = new Map<string, BulkChemicalRow[]>();
-
   for (const row of rows) {
     const key = row.preferred_name.toLowerCase().trim();
     if (!key) continue;
@@ -291,18 +232,11 @@ export function buildNameIndex(
     existing.push(row);
     index.set(key, existing);
   }
-
   return index;
 }
 
-/**
- * Build a lookup map from CASRN -> CPDat rows.
- */
-export function buildCASIndex(
-  rows: BulkChemicalRow[]
-): Map<string, BulkChemicalRow[]> {
+export function buildCASIndex(rows: BulkChemicalRow[]): Map<string, BulkChemicalRow[]> {
   const index = new Map<string, BulkChemicalRow[]>();
-
   for (const row of rows) {
     if (!row.casrn) continue;
     const key = row.casrn.trim();
@@ -310,6 +244,8 @@ export function buildCASIndex(
     existing.push(row);
     index.set(key, existing);
   }
+  return index;
+}
 
   return index;
 }
