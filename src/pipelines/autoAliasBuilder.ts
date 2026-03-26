@@ -1,20 +1,49 @@
 import { supabase } from "../supabase.js";
+import { normalizeInci } from "../normalize/inci.js";
 
 const PAGE_SIZE_TOKENS = 50;
-const MATERIAL_ENTITY_TYPE = "substance";
 const ALIAS_TYPE = "common";
 const MAPPING_METHOD = "auto_alias_builder";
 const ALIAS_CONFIDENCE = 1;
 
-function isBadToken(token: string): boolean {
-  const t = token.trim().toLowerCase();
-  if (!t) return true;
-  const bad = new Set(["unknown", "n/a", "and", "or"]);
-  return bad.has(t);
-}
+const BAD_TOKENS = new Set([
+  "and",
+  "or",
+  "with",
+  "contains",
+  "may contain",
+  "unknown",
+  "null",
+  "none",
+  "ingredients",
+  "active ingredients",
+  "inactive ingredients",
+  "other ingredients",
+  "please see package",
+]);
 
 function collapseSpaces(s: string): string {
   return s.replace(/\s+/g, " ").trim();
+}
+
+function shouldSkipToken(token: string): boolean {
+  if (!token) return true;
+  if (token.length < 2) return true;
+  if (BAD_TOKENS.has(token)) return true;
+  return false;
+}
+
+function classifyEntityType(token: string): "class" | "material" | "substance" {
+  // F:
+  // if token contains "fragrance" or equals "parfum" -> class
+  if (token === "parfum" || token.includes("fragrance")) return "class";
+
+  // if token contains "extract", "oil", "butter", "wax", or "juice" -> material
+  const materialKeywords = ["extract", "oil", "butter", "wax", "juice"];
+  if (materialKeywords.some((k) => token.includes(k))) return "material";
+
+  // otherwise default substance
+  return "substance";
 }
 
 /** Human-friendly display form: convert underscores/hyphens to spaces and title-case. */
@@ -53,7 +82,10 @@ async function getMaterialIdFromSafeAlias(normalizedToken: string): Promise<stri
   return data?.material_id ?? null;
 }
 
-async function ensureMaterialForToken(normalizedToken: string): Promise<{ materialId: string; created: boolean }> {
+async function ensureMaterialForToken(
+  normalizedToken: string,
+  entityType: "class" | "material" | "substance"
+): Promise<{ materialId: string; created: boolean }> {
   const existingId = await getMaterialIdByNormalizedName(normalizedToken);
   if (existingId) return { materialId: existingId, created: false };
 
@@ -69,7 +101,7 @@ async function ensureMaterialForToken(normalizedToken: string): Promise<{ materi
       {
         material_name: materialName,
         normalized_name: normalizedToken,
-        entity_type: MATERIAL_ENTITY_TYPE,
+        entity_type: entityType,
         review_status: "published",
       },
       { onConflict: "normalized_name" }
@@ -186,6 +218,8 @@ export async function runAutoAliasBuilder(opts?: {
   aliases_created: number;
   materials_created: number;
   ingredient_rows_mapped: number;
+  skipped_tokens_count: number;
+  skipped_examples: string[];
 }> {
   const log = opts?.log ?? ((m: string) => console.log(m));
 
@@ -193,59 +227,78 @@ export async function runAutoAliasBuilder(opts?: {
   let aliasesCreated = 0;
   let materialsCreated = 0;
   let ingredientRowsMapped = 0;
-  const attemptedTokens = new Set<string>();
+  let skippedTokensCount = 0;
+  const skippedExamples: string[] = [];
 
   log(`Auto-alias builder: starting...`);
 
+  let lastToken = "";
   while (true) {
     const { data: queueRows, error: qErr } = await supabase
       .from("v_unmapped_ingredient_queue")
       .select("normalized_token, occurrences")
-      .order("occurrences", { ascending: false })
+      .order("normalized_token", { ascending: true })
+      .gt("normalized_token", lastToken)
       .limit(PAGE_SIZE_TOKENS);
 
     if (qErr) throw new Error(qErr.message);
-    const rawTokens = (queueRows ?? []).map((r) => (r.normalized_token ? collapseSpaces(String(r.normalized_token)) : ""));
-    const tokens = rawTokens
-      .filter((t) => !isBadToken(t))
-      .filter((t) => t !== "");
-
-    if (tokens.length === 0) {
-      log(`Auto-alias builder: no unmapped tokens remain (or only bad tokens).`);
+    if (!queueRows || queueRows.length === 0) {
+      log(`Auto-alias builder: queue exhausted.`);
       break;
     }
 
-    const newTokens = [...new Set(tokens)].filter((t) => !attemptedTokens.has(t));
-    if (newTokens.length === 0) {
-      log(`Auto-alias builder: top tokens were already attempted in this run; stopping to avoid infinite loop.`);
-      break;
+    const tokensToProcessSet = new Set<string>();
+    const tokensToProcess: string[] = [];
+
+    for (const row of queueRows) {
+      if (!row.normalized_token) continue;
+      const rawToken = String(row.normalized_token);
+
+      // Re-normalize to tighten (handles older bad data) while preserving idempotency.
+      const cleaned = normalizeInci(rawToken);
+
+      lastToken = rawToken;
+
+      if (shouldSkipToken(cleaned)) {
+        skippedTokensCount++;
+        if (cleaned && skippedExamples.length < 10 && !skippedExamples.includes(cleaned)) skippedExamples.push(cleaned);
+        continue;
+      }
+
+      if (!tokensToProcessSet.has(cleaned)) {
+        tokensToProcessSet.add(cleaned);
+        tokensToProcess.push(cleaned);
+      }
     }
 
-    // Mark as attempted up-front to avoid reprocessing a large batch if mapping creates no progress.
-    newTokens.forEach((t) => attemptedTokens.add(t));
-    log(`Processing token batch (${newTokens.length} new tokens): ${newTokens.join(", ")}`);
+    if (tokensToProcess.length === 0) {
+      log(`Batch: all tokens were skipped (${queueRows.length} queue rows).`);
+      continue;
+    }
+
+    log(`Processing token batch (${tokensToProcess.length} tokens): ${tokensToProcess.join(", ")}`);
 
     // 1-2: ensure materials + aliases exist.
-    for (const normalizedToken of newTokens) {
+    for (const normalizedToken of tokensToProcess) {
       tokensProcessed++;
 
-      // Ensure material exists (or reuse safe alias mapping).
-      const { materialId, created } = await ensureMaterialForToken(normalizedToken);
+      const entityType = classifyEntityType(normalizedToken);
+
+      const { materialId, created } = await ensureMaterialForToken(normalizedToken, entityType);
       if (created) materialsCreated++;
 
-      // Ensure alias exists for material+normalized_alias.
       const { aliasCreated } = await ensureAliasForMaterial({ materialId, normalizedToken });
       if (aliasCreated) aliasesCreated++;
 
       log(
-        `Token "${normalizedToken}": material ${created ? "created" : "reused"} (${materialId}); alias ${
+        `Token "${normalizedToken}": material ${created ? "created" : "reused"} (${materialId}); entity_type=${entityType}; alias ${
           aliasCreated ? "created" : "already exists"
         }.`
       );
     }
 
     // 3-5: remap ingredients using the safe alias view.
-    const mappedInBatch = await remapParsedIngredientsForTokens(newTokens, log);
+    const mappedInBatch = await remapParsedIngredientsForTokens(tokensToProcess, log);
     ingredientRowsMapped += mappedInBatch;
     log(`Batch done: mapped ${mappedInBatch} ingredient rows.`);
   }
@@ -255,6 +308,8 @@ export async function runAutoAliasBuilder(opts?: {
     aliases_created: aliasesCreated,
     materials_created: materialsCreated,
     ingredient_rows_mapped: ingredientRowsMapped,
+    skipped_tokens_count: skippedTokensCount,
+    skipped_examples: skippedExamples,
   };
   log(`Auto-alias builder: finished. Summary: ${JSON.stringify(summary)}`);
   return summary;
