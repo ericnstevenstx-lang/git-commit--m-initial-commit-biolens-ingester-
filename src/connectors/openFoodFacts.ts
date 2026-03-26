@@ -1,9 +1,7 @@
 /**
  * Open Food Facts Connector
  * Fetches product data from Open Food Facts and Open Products Facts APIs.
- * Rate limited to 100 req/min for reads per OFF guidelines.
- *
- * API docs: https://openfoodfacts.github.io/openfoodfacts-server/api/
+ * Rate limited to ~100 req/min by default.
  */
 
 const OFF_API_BASE = 'https://world.openfoodfacts.org/api/v2';
@@ -90,26 +88,45 @@ export function normalizeCountryTag(tag: string): string | null {
   return COUNTRY_TAG_MAP[tag] || null;
 }
 
+function asString(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((v) => String(v).trim())
+    .filter(Boolean);
+}
+
 function parseProduct(raw: Record<string, unknown>): OFFProduct {
   const p = (raw.product || raw) as Record<string, unknown>;
+
   return {
-    code: String(p.code || ''),
-    product_name: (p.product_name as string) || (p.product_name_en as string) || null,
-    brands: (p.brands as string) || null,
-    categories_tags_en: (p.categories_tags_en as string[]) || [],
-    ingredients_text: (p.ingredients_text as string) || null,
-    ingredients_text_en: (p.ingredients_text_en as string) || null,
-    countries_tags: (p.countries_tags as string[]) || [],
-    origins: (p.origins as string) || null,
-    manufacturing_places: (p.manufacturing_places as string) || null,
-    stores: (p.stores as string) || null,
-    labels: (p.labels as string) || null,
-    packaging: (p.packaging as string) || null,
-    quantity: (p.quantity as string) || null,
-    image_url: (p.image_url as string) || null,
-    nutriscore_grade: (p.nutriscore_grade as string) || null,
-    ecoscore_grade: (p.ecoscore_grade as string) || null,
-    nova_group: (p.nova_group as number) || null,
+    code: asString(p.code) || '',
+    product_name: asString(p.product_name) || asString(p.product_name_en),
+    brands: asString(p.brands),
+    categories_tags_en: asStringArray(p.categories_tags_en),
+    ingredients_text: asString(p.ingredients_text),
+    ingredients_text_en: asString(p.ingredients_text_en),
+    countries_tags: asStringArray(p.countries_tags),
+    origins: asString(p.origins),
+    manufacturing_places: asString(p.manufacturing_places),
+    stores: asString(p.stores),
+    labels: asString(p.labels),
+    packaging: asString(p.packaging),
+    quantity: asString(p.quantity),
+    image_url: asString(p.image_url),
+    nutriscore_grade: asString(p.nutriscore_grade),
+    ecoscore_grade: asString(p.ecoscore_grade),
+    nova_group:
+      typeof p.nova_group === 'number'
+        ? p.nova_group
+        : typeof p.nova_group === 'string'
+        ? Number(p.nova_group)
+        : null,
     raw: p,
   };
 }
@@ -160,7 +177,8 @@ export async function searchProducts(
     page_size: String(pageSize),
     json: '1',
   });
-  const url = `${base}/search?${params}`;
+
+  const url = `${base}/search?${params.toString()}`;
 
   try {
     const res = await fetch(url, {
@@ -180,7 +198,7 @@ export async function searchProducts(
     await sleep(RATE_LIMIT_MS);
     return products.map(parseProduct);
   } catch (err) {
-    console.error(`[off] Search fetch error:`, (err as Error).message);
+    console.error('[off] Search fetch error:', (err as Error).message);
     return [];
   }
 }
@@ -195,7 +213,9 @@ export async function fetchByCategory(
   const all: OFFProduct[] = [];
 
   for (let page = 1; page <= maxPages; page++) {
-    const url = `${base}/search?categories_tags_en=${encodeURIComponent(categoryTag)}&page=${page}&page_size=${pageSize}&json=1`;
+    const url =
+      `${base}/search?categories_tags_en=${encodeURIComponent(categoryTag)}` +
+      `&page=${page}&page_size=${pageSize}&json=1`;
 
     try {
       const res = await fetch(url, {
@@ -210,9 +230,10 @@ export async function fetchByCategory(
       const products = (json.products as Record<string, unknown>[]) || [];
 
       if (products.length === 0) break;
-      all.push(...products.map(parseProduct));
 
+      all.push(...products.map(parseProduct));
       console.log(`[off] Category ${categoryTag} page ${page}: ${products.length} products`);
+
       await sleep(RATE_LIMIT_MS);
     } catch (err) {
       console.error(`[off] Category fetch error page ${page}:`, (err as Error).message);
