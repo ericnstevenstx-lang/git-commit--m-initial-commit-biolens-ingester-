@@ -205,65 +205,62 @@ export function parseBulkCSV(filePath: string): BulkChemicalRow[] {
 
   const rows = records.map((r) => {
     const dtxsid =
-      r.DTXSID ||
       r.dtxsid ||
-      r.dsstox_substance_id ||
-      r['DTXSID'] ||
+      r.DTXSID ||
+      r.provisional_dtxsid ||
       '';
 
     const casrn =
+      r.curated_casrn ||
+      r.raw_casrn ||
       r.CASRN ||
       r.casrn ||
       r.cas_number ||
-      r['CASRN'] ||
       '';
 
     const name =
+      r.curated_chemical_name ||
+      r.raw_chemical_name ||
       r.preferredName ||
       r.preferred_name ||
       r.chemical_name ||
       r.chemicalname ||
-      r.CHEMICAL_NAME ||
-      r.preferredname ||
-      r['Chemical Name'] ||
-      r['chemical name'] ||
       '';
 
     const funcUse =
+      r.function_category ||
+      r.raw_functional_use ||
       r.harmonized_functional_use ||
       r.functional_use ||
       r.reported_functional_use ||
-      r.functional_use_category ||
-      r.functional_use_name ||
-      r.FUNCTIONAL_USE ||
-      r['Functional Use'] ||
       '';
 
     const puc =
+      r.component_name ||
+      r.product_use_category ||
+      r.product_category ||
       r.PUC ||
       r.puc_name ||
-      r.product_use_category ||
       r.gen_cat ||
-      r.product_category ||
-      r.PRODUCT_CATEGORY ||
-      r['Product Category'] ||
       '';
 
-    const wfLower = parseFloat(r.weight_fraction_lower || r.lower_weight_fraction || '');
-    const wfUpper = parseFloat(r.weight_fraction_upper || r.upper_weight_fraction || '');
-    const wfPred = parseFloat(r.weight_fraction_predicted || r.predicted_weight_fraction || '');
-    const source = r.source || r.data_source || r.document_title || 'cpdat_bulk';
+    const source =
+      r.data_source ||
+      r.organization ||
+      r.source ||
+      r.data_document_title ||
+      'cpdat_bulk';
 
     return {
-      dtxsid,
-      casrn,
+      dtxsid: String(dtxsid).trim(),
+      casrn: String(casrn).trim(),
       preferred_name: String(name).trim(),
       functional_use: String(funcUse).trim(),
       product_use_category: String(puc).trim(),
-      weight_fraction_lower: isNaN(wfLower) ? null : wfLower,
-      weight_fraction_upper: isNaN(wfUpper) ? null : wfUpper,
-      weight_fraction_predicted: isNaN(wfPred) ? null : wfPred,
-      source_document: source,
+      weight_fraction_lower: null,
+      weight_fraction_upper: null,
+      weight_fraction_predicted: null,
+      source_document: String(source).trim(),
     };
   });
 
