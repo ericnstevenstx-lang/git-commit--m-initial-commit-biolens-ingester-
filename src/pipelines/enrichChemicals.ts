@@ -33,8 +33,29 @@ interface MappedIngredient {
   usage_count?: number;
 }
 
+function normalizeChemicalName(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[\/,()\-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\bextract\b/g, '')
+    .replace(/\boil\b/g, '')
+    .replace(/\bleaf\b/g, '')
+    .replace(/\broot\b/g, '')
+    .replace(/\bfruit\b/g, '')
+    .replace(/\bseed\b/g, '')
+    .replace(/\bpeel\b/g, '')
+    .replace(/\bjuice\b/g, '')
+    .replace(/\bpowder\b/g, '')
+    .replace(/\bwater\b/g, '')
+    .replace(/\beau\b/g, '')
+    .replace(/\baqua\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 async function getUnprocessedIngredients(): Promise<MappedIngredient[]> {
-  // Pull a larger pool of mapped materials so enrichment is not starved.
   const { data: mappings, error } = await supabase
     .from('ingredient_material_map')
     .select('material_id')
@@ -75,12 +96,14 @@ async function getUnprocessedIngredients(): Promise<MappedIngredient[]> {
     .in('material_id', materialIds);
 
   if (existingError) {
-    console.error('[enrichChemicals] Failed to fetch existing constituents:', existingError.message);
+    console.error(
+      '[enrichChemicals] Failed to fetch existing constituents:',
+      existingError.message
+    );
     return [];
   }
 
   const alreadyEnriched = new Set((existing || []).map((e) => e.material_id));
-
   const results: MappedIngredient[] = [];
 
   for (const [materialId, count] of usageMap.entries()) {
@@ -138,7 +161,10 @@ async function enrichViaAPI(ingredients: MappedIngredient[]): Promise<number> {
         );
 
       if (error) {
-        console.error(`[enrichChemicals] API upsert error for ${searchTerm}:`, error.message);
+        console.error(
+          `[enrichChemicals] API upsert error for ${searchTerm}:`,
+          error.message
+        );
       } else {
         enriched++;
       }
@@ -167,7 +193,10 @@ async function enrichViaAPI(ingredients: MappedIngredient[]): Promise<number> {
       );
 
     if (error) {
-      console.error(`[enrichChemicals] Upsert error for ${searchTerm}:`, error.message);
+      console.error(
+        `[enrichChemicals] Upsert error for ${searchTerm}:`,
+        error.message
+      );
     } else {
       enriched++;
       console.log(
@@ -201,13 +230,31 @@ async function enrichViaBulk(
   let enriched = 0;
 
   for (const ing of ingredients) {
-    const searchKey = (ing.normalized_token || ing.ingredient_raw)
-      .toLowerCase()
-      .trim();
+    const rawKey = (ing.normalized_token || ing.ingredient_raw || '').trim();
+    if (!rawKey) continue;
 
-    if (!searchKey) continue;
+    const exactKey = rawKey.toLowerCase();
+    const normalizedKey = normalizeChemicalName(rawKey);
 
-    const matches = nameIndex.get(searchKey);
+    let matches = nameIndex.get(exactKey);
+
+    if ((!matches || matches.length === 0) && normalizedKey) {
+      matches = nameIndex.get(normalizedKey);
+    }
+
+    if ((!matches || matches.length === 0) && normalizedKey.length >= 5) {
+      for (const [key, rowsForKey] of nameIndex.entries()) {
+        if (
+          key === normalizedKey ||
+          key.includes(normalizedKey) ||
+          normalizedKey.includes(key)
+        ) {
+          matches = rowsForKey;
+          break;
+        }
+      }
+    }
+
     if (!matches || matches.length === 0) continue;
 
     const match = matches[0];
@@ -223,13 +270,16 @@ async function enrichViaBulk(
           functional_use: match.functional_use || null,
           weight_fraction: match.weight_fraction_predicted,
           source_name: 'cpdat_bulk',
-          confidence: 0.7,
+          confidence: matches.length > 1 ? 0.6 : 0.7,
         },
         { onConflict: 'material_id,cas_number,source_name' }
       );
 
     if (error) {
-      console.error(`[enrichChemicals] Bulk upsert error for ${searchKey}:`, error.message);
+      console.error(
+        `[enrichChemicals] Bulk upsert error for ${rawKey}:`,
+        error.message
+      );
     } else {
       enriched++;
       if (enriched % 25 === 0) {
