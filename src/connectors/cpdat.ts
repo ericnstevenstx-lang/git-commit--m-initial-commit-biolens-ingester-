@@ -246,6 +246,3 @@ export function buildCASIndex(rows: BulkChemicalRow[]): Map<string, BulkChemical
   }
   return index;
 }
-
-  return index;
-}
