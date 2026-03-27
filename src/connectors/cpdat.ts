@@ -198,12 +198,57 @@ export function parseBulkCSV(filePath: string): BulkChemicalRow[] {
 
   console.log(`[cpdat] Parsed ${records.length} rows from ${path.basename(filePath)}`);
 
-  return records.map((r) => {
-    const dtxsid = r.DTXSID || r.dtxsid || r.dsstox_substance_id || '';
-    const casrn = r.CASRN || r.casrn || r.cas_number || '';
-    const name = r.preferredName || r.preferred_name || r.chemical_name || '';
-    const funcUse = r.harmonized_functional_use || r.functional_use || r.reported_functional_use || '';
-    const puc = r.PUC || r.puc_name || r.product_use_category || r.gen_cat || '';
+  if (records.length > 0) {
+    console.log('[cpdat] Sample headers:', Object.keys(records[0]).join(', '));
+    console.log('[cpdat] Sample row:', JSON.stringify(records[0], null, 2));
+  }
+
+  const rows = records.map((r) => {
+    const dtxsid =
+      r.DTXSID ||
+      r.dtxsid ||
+      r.dsstox_substance_id ||
+      r['DTXSID'] ||
+      '';
+
+    const casrn =
+      r.CASRN ||
+      r.casrn ||
+      r.cas_number ||
+      r['CASRN'] ||
+      '';
+
+    const name =
+      r.preferredName ||
+      r.preferred_name ||
+      r.chemical_name ||
+      r.chemicalname ||
+      r.CHEMICAL_NAME ||
+      r.preferredname ||
+      r['Chemical Name'] ||
+      r['chemical name'] ||
+      '';
+
+    const funcUse =
+      r.harmonized_functional_use ||
+      r.functional_use ||
+      r.reported_functional_use ||
+      r.functional_use_category ||
+      r.functional_use_name ||
+      r.FUNCTIONAL_USE ||
+      r['Functional Use'] ||
+      '';
+
+    const puc =
+      r.PUC ||
+      r.puc_name ||
+      r.product_use_category ||
+      r.gen_cat ||
+      r.product_category ||
+      r.PRODUCT_CATEGORY ||
+      r['Product Category'] ||
+      '';
+
     const wfLower = parseFloat(r.weight_fraction_lower || r.lower_weight_fraction || '');
     const wfUpper = parseFloat(r.weight_fraction_upper || r.upper_weight_fraction || '');
     const wfPred = parseFloat(r.weight_fraction_predicted || r.predicted_weight_fraction || '');
@@ -212,15 +257,20 @@ export function parseBulkCSV(filePath: string): BulkChemicalRow[] {
     return {
       dtxsid,
       casrn,
-      preferred_name: name,
-      functional_use: funcUse,
-      product_use_category: puc,
+      preferred_name: String(name).trim(),
+      functional_use: String(funcUse).trim(),
+      product_use_category: String(puc).trim(),
       weight_fraction_lower: isNaN(wfLower) ? null : wfLower,
       weight_fraction_upper: isNaN(wfUpper) ? null : wfUpper,
       weight_fraction_predicted: isNaN(wfPred) ? null : wfPred,
       source_document: source,
     };
   });
+
+  const nonEmptyNames = rows.filter((r) => r.preferred_name).length;
+  console.log(`[cpdat] Rows with non-empty preferred_name: ${nonEmptyNames}`);
+
+  return rows;
 }
 
 export function buildNameIndex(rows: BulkChemicalRow[]): Map<string, BulkChemicalRow[]> {
