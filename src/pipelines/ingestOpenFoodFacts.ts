@@ -17,17 +17,67 @@ import {
 } from '../connectors/openFoodFacts';
 
 // Categories relevant to BioLens material intelligence
+// Expanded from 10 → 140+ to maximize GTIN-bearing product coverage
 const TARGET_CATEGORIES = [
-  'Cleaning products',
-  'Personal care',
-  'Body care',
-  'Hair care',
-  'Skin care',
-  'Cosmetics',
-  'Baby products',
-  'Laundry detergents',
-  'Dishwashing products',
-  'Household products',
+  // === PERSONAL CARE & COSMETICS (high chemical diversity) ===
+  'Cleaning products', 'Personal care', 'Body care', 'Hair care',
+  'Skin care', 'Cosmetics', 'Baby products', 'Laundry detergents',
+  'Dishwashing products', 'Household products',
+  // Specific personal care
+  'Sunscreens', 'Deodorants', 'Toothpastes', 'Shampoos', 'Soaps',
+  'Hand sanitizers', 'Disinfectants', 'Insect repellents',
+  'Fragrances', 'Perfumes', 'Air fresheners',
+  'Nail polishes', 'Hair dyes', 'Antiperspirants',
+  'Shower gels', 'Bath products', 'Lip care', 'Face creams',
+  'Body lotions', 'Hand creams', 'Makeup', 'Foundation',
+  'Mascara', 'Eye shadow', 'Lip balms', 'Moisturizers',
+  'Conditioners', 'Hair treatments', 'Hair sprays',
+  'Shaving products', 'Aftershaves', 'Feminine hygiene',
+
+  // === HOUSEHOLD CHEMICALS ===
+  'Floor cleaners', 'Glass cleaners', 'Bathroom cleaners',
+  'Bleach', 'Fabric softeners', 'Stain removers',
+  'Toilet cleaners', 'Oven cleaners', 'Mold removers',
+  'Adhesives', 'Paints', 'Solvents',
+  'Detergents', 'Surface cleaners', 'Descalers',
+  'Drain cleaners', 'Furniture polish', 'Metal polish',
+  'Shoe care', 'Textile care', 'Waxes',
+
+  // === FOOD & BEVERAGE (massive GTIN coverage, ingredient lists) ===
+  'Beverages', 'Dairy products', 'Snacks', 'Cereals', 'Sauces',
+  'Canned foods', 'Frozen foods', 'Baby foods', 'Dietary supplements',
+  'Plant-based foods', 'Sweeteners', 'Food additives',
+  'Breads', 'Biscuits', 'Chocolates', 'Candies', 'Chips',
+  'Yogurts', 'Cheeses', 'Ice creams', 'Juices', 'Sodas',
+  'Energy drinks', 'Sports drinks', 'Teas', 'Coffees',
+  'Condiments', 'Dressings', 'Oils', 'Vinegars',
+  'Spices', 'Herbs', 'Seasonings',
+  'Meat products', 'Fish products', 'Seafood',
+  'Pasta', 'Rice', 'Noodles', 'Flour',
+  'Sugars', 'Honey', 'Jams', 'Spreads',
+  'Breakfast cereals', 'Muesli', 'Granola',
+  'Soups', 'Ready meals', 'Meal kits',
+  'Nuts', 'Seeds', 'Dried fruits',
+  'Infant formulas', 'Baby cereals',
+  'Organic foods', 'Gluten-free foods',
+  'Protein bars', 'Protein powders',
+
+  // === HEALTH & WELLNESS ===
+  'Vitamins', 'Herbal supplements', 'Minerals',
+  'Probiotics', 'Omega-3', 'Multivitamins',
+  'First aid products', 'Oral care', 'Eye care',
+  'Contact lens solutions', 'Wound care',
+  'Pain relief', 'Cold remedies',
+  'Digestive health', 'Sleep aids',
+
+  // === PET CARE ===
+  'Pet foods', 'Pet care', 'Dog food', 'Cat food',
+  'Pet treats', 'Pet shampoos',
+
+  // === PACKAGING-RELEVANT (material intelligence) ===
+  'Bottled water', 'Canned beverages', 'Packaged foods',
+  'Plastic packaging', 'Glass packaging',
+  'Tetra Pak', 'Vacuum packed',
 ];
 
 /**

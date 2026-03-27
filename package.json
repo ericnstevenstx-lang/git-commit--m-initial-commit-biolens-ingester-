@@ -14,7 +14,10 @@
     "audit:unresolved": "tsx src/audits/unresolvedExport.ts",
     "audit:identifier-conflicts": "tsx src/audits/identifierConflictExport.ts",
 
-    "audit:all": "npm run audit:unresolved && npm run audit:identifier-conflicts"
+    "audit:all": "npm run audit:unresolved && npm run audit:identifier-conflicts",
+
+    "lookup:reverse-gtin": "tsx src/scripts/runReverseGTINLookup.ts",
+    "enrich:upc": "tsx src/scripts/runEnrichUPC.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
