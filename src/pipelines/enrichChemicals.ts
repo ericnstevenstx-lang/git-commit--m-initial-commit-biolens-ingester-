@@ -6,10 +6,11 @@
  * functional use categories from CPDat.
  *
  * Column mapping:
- *   materials.material_name (not .name)
- *   ingredient_material_map.match_confidence (not .confidence)
- *   material_chemical_constituents.confidence (our table, correct as-is)
+ *   materials.material_name
+ *   ingredient_material_map.match_confidence
+ *   material_chemical_constituents.confidence
  */
+
 import { supabase } from '../supabase.js';
 import {
   resolveChemical,
@@ -18,78 +19,88 @@ import {
   buildNameIndex,
 } from '../connectors/cpdat.js';
 
-const BATCH_SIZE = Number(process.env.BATCH_SIZE) || 20;
+const BATCH_SIZE = Number(process.env.BATCH_SIZE) || 50;
 const CPDAT_CSV_PATH = process.env.CPDAT_CSV_PATH || '';
 const USE_API = !!process.env.CTX_API_KEY;
+const MATERIAL_SCAN_LIMIT = Number(process.env.ENRICH_MATERIAL_LIMIT) || 20000;
+const TARGET_ENRICH_LIMIT = Number(process.env.ENRICH_TARGET_LIMIT) || 200;
 
 interface MappedIngredient {
   material_id: string;
   material_name: string;
   ingredient_raw: string;
   normalized_token: string;
+  usage_count?: number;
 }
 
 async function getUnprocessedIngredients(): Promise<MappedIngredient[]> {
-  // Get top materials by usage (highest leverage first)
-  const { data: rows, error } = await supabase.rpc('get_top_unenriched_materials', {
-    limit_count: 200
-  });
+  // Pull a larger pool of mapped materials so enrichment is not starved.
+  const { data: mappings, error } = await supabase
+    .from('ingredient_material_map')
+    .select('material_id')
+    .limit(MATERIAL_SCAN_LIMIT);
 
-  if (error || !rows) {
-    console.error('[enrichChemicals] Failed to fetch materials:', error?.message);
+  if (error || !mappings) {
+    console.error('[enrichChemicals] Failed to fetch mappings:', error?.message);
     return [];
   }
 
-  return rows.map((r: any) => ({
-    material_id: r.material_id,
-    material_name: r.material_name,
-    ingredient_raw: r.material_name,
-    normalized_token: (r.material_name || '').toLowerCase(),
-  }));
-}
+  const usageMap = new Map<string, number>();
+  for (const row of mappings) {
+    const current = usageMap.get(row.material_id) || 0;
+    usageMap.set(row.material_id, current + 1);
+  }
 
-  // Unique material IDs
-  const materialIds = [...new Set(mappings.map((m) => m.material_id))];
+  const materialIds = [...usageMap.keys()];
+  if (materialIds.length === 0) return [];
 
-  // Get material names
-  const { data: materials } = await supabase
+  const { data: materials, error: materialsError } = await supabase
     .from('materials')
     .select('id, material_name, normalized_name')
     .in('id', materialIds);
 
-  const nameMap = new Map(
-    (materials || []).map((m) => [m.id, m.material_name || m.normalized_name || ''])
-  );
+  if (materialsError) {
+    console.error('[enrichChemicals] Failed to fetch materials:', materialsError.message);
+    return [];
+  }
 
-  // Get materials that already have chemical constituents
-  const { data: existing } = await supabase
+  const nameMap = new Map<string, string>();
+  for (const m of materials || []) {
+    nameMap.set(m.id, m.material_name || m.normalized_name || '');
+  }
+
+  const { data: existing, error: existingError } = await supabase
     .from('material_chemical_constituents')
     .select('material_id')
     .in('material_id', materialIds);
 
-  const alreadyEnriched = new Set(
-    (existing || []).map((e) => e.material_id)
-  );
+  if (existingError) {
+    console.error('[enrichChemicals] Failed to fetch existing constituents:', existingError.message);
+    return [];
+  }
 
-  // Filter to materials not yet enriched
+  const alreadyEnriched = new Set((existing || []).map((e) => e.material_id));
+
   const results: MappedIngredient[] = [];
-  const seen = new Set<string>();
 
-  for (const mapping of mappings) {
-    const mid = mapping.material_id;
-    if (alreadyEnriched.has(mid)) continue;
-    if (seen.has(mid)) continue;
-    seen.add(mid);
+  for (const [materialId, count] of usageMap.entries()) {
+    if (alreadyEnriched.has(materialId)) continue;
+
+    const materialName = nameMap.get(materialId) || '';
+    if (!materialName.trim()) continue;
 
     results.push({
-      material_id: mid,
-      material_name: nameMap.get(mid) || '',
-      ingredient_raw: nameMap.get(mid) || '',
-      normalized_token: (nameMap.get(mid) || '').toLowerCase(),
+      material_id: materialId,
+      material_name: materialName,
+      ingredient_raw: materialName,
+      normalized_token: materialName.toLowerCase().trim(),
+      usage_count: count,
     });
   }
 
-  return results;
+  results.sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0));
+
+  return results.slice(0, TARGET_ENRICH_LIMIT);
 }
 
 async function enrichViaAPI(ingredients: MappedIngredient[]): Promise<number> {
@@ -108,6 +119,7 @@ async function enrichViaAPI(ingredients: MappedIngredient[]): Promise<number> {
     }
 
     const record = await fetchChemicalRecord(identity.dtxsid);
+
     if (!record) {
       const { error } = await supabase
         .from('material_chemical_constituents')
@@ -125,7 +137,11 @@ async function enrichViaAPI(ingredients: MappedIngredient[]): Promise<number> {
           { onConflict: 'material_id,cas_number,source_name' }
         );
 
-      if (!error) enriched++;
+      if (error) {
+        console.error(`[enrichChemicals] API upsert error for ${searchTerm}:`, error.message);
+      } else {
+        enriched++;
+      }
       continue;
     }
 
@@ -151,10 +167,7 @@ async function enrichViaAPI(ingredients: MappedIngredient[]): Promise<number> {
       );
 
     if (error) {
-      console.error(
-        `[enrichChemicals] Upsert error for ${searchTerm}:`,
-        error.message
-      );
+      console.error(`[enrichChemicals] Upsert error for ${searchTerm}:`, error.message);
     } else {
       enriched++;
       console.log(
@@ -174,6 +187,7 @@ async function enrichViaBulk(
 ): Promise<number> {
   console.log(`[enrichChemicals] Loading bulk CSV: ${csvPath}`);
   const rows = parseBulkCSV(csvPath);
+
   if (rows.length === 0) {
     console.error('[enrichChemicals] No rows parsed from CSV');
     return 0;
@@ -209,19 +223,16 @@ async function enrichViaBulk(
           functional_use: match.functional_use || null,
           weight_fraction: match.weight_fraction_predicted,
           source_name: 'cpdat_bulk',
-          confidence: 0.70,
+          confidence: 0.7,
         },
         { onConflict: 'material_id,cas_number,source_name' }
       );
 
     if (error) {
-      console.error(
-        `[enrichChemicals] Bulk upsert error for ${searchKey}:`,
-        error.message
-      );
+      console.error(`[enrichChemicals] Bulk upsert error for ${searchKey}:`, error.message);
     } else {
       enriched++;
-      if (enriched % 50 === 0) {
+      if (enriched % 25 === 0) {
         console.log(`[enrichChemicals] Bulk enriched: ${enriched}`);
       }
     }
@@ -251,9 +262,11 @@ async function enrichPubChemCIDs(): Promise<number> {
     if (!cas) continue;
 
     try {
-      const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(cas)}/cids/JSON`;
-      const res = await fetch(url);
+      const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(
+        cas
+      )}/cids/JSON`;
 
+      const res = await fetch(url);
       if (!res.ok) continue;
 
       const json = (await res.json()) as Record<string, unknown>;
@@ -270,7 +283,6 @@ async function enrichPubChemCIDs(): Promise<number> {
 
       if (!updateError) updated++;
 
-      // PubChem rate limit: 5 requests/second
       await new Promise((r) => setTimeout(r, 250));
     } catch {
       continue;
