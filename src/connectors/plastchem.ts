@@ -15,7 +15,9 @@
  *
  * Uses SheetJS (xlsx) to parse .xlsx files.
  */
-import * as XLSX from 'xlsx';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const XLSX = require('xlsx');
 import fs from 'node:fs';
 
 export interface PlastChemEntry {
