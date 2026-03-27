@@ -20,6 +20,7 @@
     "classify:hts": "tsx src/scripts/runClassifyHTS.ts",
     "compute:tariff": "tsx src/scripts/runComputeTariff.ts",
     "resolve:origin": "tsx src/scripts/runResolveOrigin.ts",
+    "ingest:plastchem": "tsx src/scripts/runIngestPlastChem.ts",
     "lookup:reverse-gtin": "tsx src/scripts/runReverseGTINLookup.ts",
     "enrich:upc": "tsx src/scripts/runEnrichUPC.ts"
   },
@@ -28,6 +29,7 @@
     "cheerio": "^1.0.0",
     "csv-stringify": "^6.5.0",
     "dotenv": "^16.4.5",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {
