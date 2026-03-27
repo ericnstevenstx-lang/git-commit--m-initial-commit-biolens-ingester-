@@ -46,10 +46,10 @@ async function buildMaterialLookup(): Promise<{
   byName: Map<string, MaterialMatch>;
   byCAS: Map<string, MaterialMatch>;
 }> {
-  // Use the correct column names from our schema
+  // Fetch materials with the actual column names
   const { data: materials, error } = await supabase
     .from('materials')
-    .select('id, canonical_name, display_name');
+    .select('id, material_name, normalized_name, cas_rn');
 
   if (error || !materials) {
     console.error('[plastchem] Failed to fetch materials:', error?.message);
@@ -60,48 +60,31 @@ async function buildMaterialLookup(): Promise<{
   const byCAS = new Map<string, MaterialMatch>();
 
   for (const m of materials) {
-    const name = m.canonical_name || m.display_name;
+    const name = m.material_name;
     if (!name) continue;
     const match: MaterialMatch = { material_id: m.id, material_name: name };
 
     byName.set(name.toLowerCase(), match);
-    if (m.display_name && m.display_name !== m.canonical_name) {
-      byName.set(m.display_name.toLowerCase(), match);
+    if (m.normalized_name) {
+      byName.set(m.normalized_name.toLowerCase(), match);
+    }
+    if (m.cas_rn) {
+      byCAS.set(m.cas_rn.trim(), match);
     }
   }
 
-  // Also check material_identifiers for existing CAS numbers
-  const { data: identifiers } = await supabase
-    .from('material_identifiers')
-    .select('material_id, id_value')
-    .eq('id_type', 'cas_rn');
-
-  if (identifiers) {
-    for (const ident of identifiers) {
-      const mat = materials.find((m: any) => m.id === ident.material_id);
-      if (mat) {
-        const name = mat.canonical_name || mat.display_name;
-        byCAS.set(ident.id_value, { material_id: mat.id, material_name: name });
-      }
-    }
-  }
-
-  // Also check material_aliases
+  // Also check material_aliases for broader matching
   const { data: aliases } = await supabase
     .from('material_aliases')
-    .select('material_id, normalized_alias');
+    .select('material_id, alias, normalized_alias');
 
   if (aliases) {
-    for (const alias of aliases) {
-      if (!alias.normalized_alias) continue;
-      const mat = materials.find((m: any) => m.id === alias.material_id);
-      if (mat) {
-        const name = mat.canonical_name || mat.display_name;
-        byName.set(alias.normalized_alias.toLowerCase(), {
-          material_id: mat.id,
-          material_name: name,
-        });
-      }
+    for (const a of aliases) {
+      const mat = materials.find((m: any) => m.id === a.material_id);
+      if (!mat) continue;
+      const match: MaterialMatch = { material_id: mat.id, material_name: mat.material_name };
+      if (a.alias) byName.set(a.alias.toLowerCase(), match);
+      if (a.normalized_alias) byName.set(a.normalized_alias.toLowerCase(), match);
     }
   }
 
@@ -257,6 +240,23 @@ export async function ingestPlastChem(dbPath?: string): Promise<void> {
 
   // === Phase 1: Populate material_identifiers (CAS, SMILES, InChI) ===
   await populateMaterialIdentifiers(entries, byName, byCAS);
+
+  // === Phase 1b: Backfill cas_rn on materials table where we matched ===
+  console.log('[plastchem] Backfilling cas_rn on materials table...');
+  let casBackfilled = 0;
+  for (const entry of entries) {
+    if (!entry.cas_rn) continue;
+    const match = byName.get(entry.chemical_name.toLowerCase());
+    if (!match) continue;
+    // Only update if material doesn't already have a CAS
+    const { error: updateErr } = await supabase
+      .from('materials')
+      .update({ cas_rn: entry.cas_rn })
+      .eq('id', match.material_id)
+      .is('cas_rn', null);
+    if (!updateErr) casBackfilled++;
+  }
+  console.log(`[plastchem] Backfilled ${casBackfilled} CAS numbers on materials`);
 
   // === Phase 2: Upsert into material_chemical_constituents ===
   let upserted = 0;
