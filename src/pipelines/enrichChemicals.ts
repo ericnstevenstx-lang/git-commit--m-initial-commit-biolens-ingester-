@@ -30,16 +30,23 @@ interface MappedIngredient {
 }
 
 async function getUnprocessedIngredients(): Promise<MappedIngredient[]> {
-  // Get all material_ids that have been mapped
-  const { data: mappings, error } = await supabase
-    .from('ingredient_material_map')
-    .select('material_id')
-    .limit(5000);
+  // Get top materials by usage (highest leverage first)
+  const { data: rows, error } = await supabase.rpc('get_top_unenriched_materials', {
+    limit_count: 200
+  });
 
-  if (error || !mappings) {
-    console.error('[enrichChemicals] Failed to fetch mappings:', error?.message);
+  if (error || !rows) {
+    console.error('[enrichChemicals] Failed to fetch materials:', error?.message);
     return [];
   }
+
+  return rows.map((r: any) => ({
+    material_id: r.material_id,
+    material_name: r.material_name,
+    ingredient_raw: r.material_name,
+    normalized_token: (r.material_name || '').toLowerCase(),
+  }));
+}
 
   // Unique material IDs
   const materialIds = [...new Set(mappings.map((m) => m.material_id))];
