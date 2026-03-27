@@ -1,19 +1,12 @@
 /**
  * PlastChem Connector
  *
- * Parses the PlastChem database XLSX (v1.01) from Zenodo:
- * https://zenodo.org/records/15397723
- *
- * The main file (plastchem_db_v1.01.xlsx) contains:
- *   - Chemical identifiers (CAS RN, name, SMILES, InChI)
- *   - Polymer associations (PE, PP, PVC, PET, PS, etc.)
- *   - Function categories (additive, processing aid, monomer, NIAS)
- *   - Hazard flags (persistent, bioaccumulative, mobile, toxic)
- *
- * The hazard file (Hazard_information_PlastChem_v1.01.xlsx) contains:
- *   - Detailed hazard classifications per chemical
- *
- * Uses SheetJS (xlsx) to parse .xlsx files.
+ * Parses the PlastChem database XLSX (v1.01) from Zenodo.
+ * Uses the "Overview database" sheet which contains 17,933 chemicals with:
+ *   - CAS RN, PubChem name, IUPAC name
+ *   - Risk classification (Red/Orange/Watch/White/Grey list)
+ *   - Hazard, Persistence, Bioaccumulation, Mobility, Toxicity scores
+ *   - Harmonized functions, production volume
  */
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
@@ -21,84 +14,41 @@ const XLSX = require('xlsx');
 import fs from 'node:fs';
 
 export interface PlastChemEntry {
+  plastchem_id: number;
   cas_rn: string;
-  chemical_name: string;
-  smiles: string | null;
-  inchi: string | null;
-  function_category: string | null;  // additive, processing_aid, monomer, nias
-  specific_function: string | null;  // plasticizer, flame_retardant, stabilizer, etc.
-  // Polymer associations (true = found in this polymer type)
-  polymers: {
-    PE: boolean;
-    PP: boolean;
-    PVC: boolean;
-    PET: boolean;
-    PS: boolean;
-    PU: boolean;
-    ABS: boolean;
-    PA: boolean;
-    PC: boolean;
-    PMMA: boolean;
-    PLA: boolean;
-    rubber: boolean;
-    silicone: boolean;
-    other: boolean;
-  };
-  // Hazard flags
+  chemical_name: string;          // pubchem_name
+  iupac_name: string | null;
+  list_classification: string;    // Red_list, Orange_list, etc.
+  hazard_score: number | null;
+  persistence_score: number | null;
+  bioaccumulation_score: number | null;
+  mobility_score: number | null;
+  toxicity_score: number | null;
+  harmonized_functions: string | null;
+  production_volume_tons: number | null;
+  mea_names: string | null;       // multilateral environmental agreement
+  precedent_names: string | null;  // e.g. California_P65
+  // Derived flags
   hazard: {
     persistent: boolean;
     bioaccumulative: boolean;
     mobile: boolean;
     toxic: boolean;
-    cmr: boolean;  // carcinogenic, mutagenic, reproductive toxicant
+    cmr: boolean;
     endocrine_disruptor: boolean;
-    of_concern: boolean;  // overall "chemical of concern" flag
+    of_concern: boolean;
   };
+  function_category: string | null;
+  specific_function: string | null;
+  // Polymer associations are not in Overview sheet
+  polymers: Record<string, boolean>;
+  smiles: string | null;
+  inchi: string | null;
   source_row: number;
 }
 
-export interface PlastChemHazardEntry {
-  cas_rn: string;
-  chemical_name: string;
-  hazard_source: string;
-  hazard_category: string;
-  hazard_detail: string | null;
-}
-
 /**
- * Helper to check if a cell value represents "true" / "yes" / "1" / "x"
- */
-function isTruthy(val: unknown): boolean {
-  if (val === null || val === undefined || val === '') return false;
-  const s = String(val).toLowerCase().trim();
-  return s === '1' || s === 'yes' || s === 'true' || s === 'x' || s === 'y';
-}
-
-/**
- * Find a column by checking multiple possible header names.
- * Returns the first matching header found.
- */
-function findColumn(
-  headers: string[],
-  candidates: string[]
-): string | null {
-  const lowerHeaders = headers.map((h) => h.toLowerCase().trim());
-  for (const candidate of candidates) {
-    const idx = lowerHeaders.indexOf(candidate.toLowerCase());
-    if (idx >= 0) return headers[idx];
-  }
-  // Partial match
-  for (const candidate of candidates) {
-    const found = headers.find((h) =>
-      h.toLowerCase().includes(candidate.toLowerCase())
-    );
-    if (found) return found;
-  }
-  return null;
-}
-
-/**
- * Parse the main PlastChem database XLSX.
+ * Parse the "Overview database" sheet from PlastChem XLSX.
  */
 export function parsePlastChemDB(filePath: string): PlastChemEntry[] {
   if (!fs.existsSync(filePath)) {
@@ -109,136 +59,104 @@ export function parsePlastChemDB(filePath: string): PlastChemEntry[] {
   console.log(`[plastchem] Reading: ${filePath}`);
   const workbook = XLSX.readFile(filePath, { type: 'file' });
 
-  // Use first sheet
-  const sheetName = workbook.SheetNames[0];
-  console.log(`[plastchem] Sheet: ${sheetName}`);
+  // Use "Overview database" sheet (the main data sheet)
+  const targetSheet = 'Overview database';
+  if (!workbook.SheetNames.includes(targetSheet)) {
+    console.error(`[plastchem] Sheet "${targetSheet}" not found. Available: ${workbook.SheetNames.join(', ')}`);
+    return [];
+  }
 
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' }) as Record<
-    string,
-    unknown
-  >[];
+  const sheet = workbook.Sheets[targetSheet];
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' }) as Record<string, unknown>[];
 
   if (rows.length === 0) {
     console.error('[plastchem] No data rows found');
     return [];
   }
 
-  // Detect column names from first row keys
-  const headers = Object.keys(rows[0]);
-  console.log(`[plastchem] ${rows.length} rows, ${headers.length} columns`);
-  console.log(`[plastchem] Sample headers: ${headers.slice(0, 15).join(', ')}`);
-
-  // Map columns flexibly
-  const colCAS = findColumn(headers, ['CAS RN', 'CAS', 'cas_rn', 'CASRN', 'CAS_RN']);
-  const colName = findColumn(headers, [
-    'Chemical name', 'Name', 'chemical_name', 'Substance name', 'preferred_name',
-  ]);
-  const colSMILES = findColumn(headers, ['SMILES', 'smiles', 'Canonical SMILES']);
-  const colInChI = findColumn(headers, ['InChI', 'inchi', 'InChIKey']);
-  const colFunction = findColumn(headers, [
-    'Function', 'function', 'Function category', 'function_category',
-    'Functional use', 'Top-level function',
-  ]);
-  const colSpecificFunc = findColumn(headers, [
-    'Specific function', 'specific_function', 'Sub-function',
-    'Detailed function', 'Function detail',
-  ]);
-
-  if (!colCAS && !colName) {
-    console.error('[plastchem] Cannot find CAS or Name columns');
-    console.error('[plastchem] Available headers:', headers.join(', '));
-    return [];
-  }
-
-  console.log(`[plastchem] CAS column: ${colCAS}`);
-  console.log(`[plastchem] Name column: ${colName}`);
-  console.log(`[plastchem] Function column: ${colFunction}`);
-
-  // Polymer columns - search by common abbreviations
-  const polymerCols: Record<string, string | null> = {
-    PE: findColumn(headers, ['PE', 'Polyethylene']),
-    PP: findColumn(headers, ['PP', 'Polypropylene']),
-    PVC: findColumn(headers, ['PVC', 'Polyvinyl chloride']),
-    PET: findColumn(headers, ['PET', 'Polyethylene terephthalate']),
-    PS: findColumn(headers, ['PS', 'Polystyrene']),
-    PU: findColumn(headers, ['PU', 'PUR', 'Polyurethane']),
-    ABS: findColumn(headers, ['ABS']),
-    PA: findColumn(headers, ['PA', 'Polyamide', 'Nylon']),
-    PC: findColumn(headers, ['PC', 'Polycarbonate']),
-    PMMA: findColumn(headers, ['PMMA', 'Polymethyl methacrylate']),
-    PLA: findColumn(headers, ['PLA', 'Polylactic acid', 'Bioplastics']),
-    rubber: findColumn(headers, ['Rubber', 'rubber']),
-    silicone: findColumn(headers, ['Silicone', 'silicone']),
-    other: findColumn(headers, ['Other polymers', 'Other', 'other']),
-  };
-
-  // Hazard columns
-  const colPersistent = findColumn(headers, ['P', 'Persistent', 'persistent', 'Persistence']);
-  const colBioaccum = findColumn(headers, ['B', 'Bioaccumulative', 'bioaccumulative', 'Bioaccumulation']);
-  const colMobile = findColumn(headers, ['M', 'Mobile', 'mobile', 'Mobility']);
-  const colToxic = findColumn(headers, ['T', 'Toxic', 'toxic', 'Toxicity']);
-  const colCMR = findColumn(headers, ['CMR', 'cmr', 'Carcinogenic']);
-  const colED = findColumn(headers, ['ED', 'Endocrine', 'endocrine_disruptor']);
-  const colConcern = findColumn(headers, [
-    'Chemical of concern', 'CoC', 'of_concern', 'Concern', 'Priority',
-  ]);
+  console.log(`[plastchem] ${rows.length} rows in "${targetSheet}"`);
 
   const entries: PlastChemEntry[] = [];
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-    const cas = colCAS ? String(row[colCAS] || '').trim() : '';
-    const name = colName ? String(row[colName] || '').trim() : '';
 
-    // Skip rows without both CAS and name
+    const cas = String(row['cas'] || '').trim();
+    const name = String(row['pubchem_name'] || '').trim();
+
+    // Skip rows without CAS or name
     if (!cas && !name) continue;
-    // Skip invalid CAS patterns (must have at least one hyphen)
-    if (cas && !cas.includes('-') && cas.length > 0) continue;
+    // Skip invalid CAS (must contain hyphen)
+    if (cas && !cas.includes('-')) continue;
+
+    const listClass = String(row['PlastChem_lists'] || '').trim();
+    const hazardScore = row['Hazard_score'] !== '' ? Number(row['Hazard_score']) : null;
+    const persistScore = row['Persistence_score'] !== '' ? Number(row['Persistence_score']) : null;
+    const bioaccumScore = row['Bioaccumulation_score'] !== '' ? Number(row['Bioaccumulation_score']) : null;
+    const mobilityScore = row['Mobility_score'] !== '' ? Number(row['Mobility_score']) : null;
+    const toxScore = row['Toxicity_score'] !== '' ? Number(row['Toxicity_score']) : null;
+    const harmonized = String(row['Harmonized_functions'] || '').trim() || null;
+    const prodVolume = row['total_production_volume_tons'] !== '' ? Number(row['total_production_volume_tons']) : null;
+
+    // Derive hazard flags from scores and list classification
+    const isRedOrOrange = listClass === 'Red_list' || listClass === 'Orange_list';
+    const isMEA = listClass === 'MEA_list';
 
     entries.push({
+      plastchem_id: Number(row['plastchem_ID'] || 0),
       cas_rn: cas,
       chemical_name: name,
-      smiles: colSMILES ? String(row[colSMILES] || '') || null : null,
-      inchi: colInChI ? String(row[colInChI] || '') || null : null,
-      function_category: colFunction ? String(row[colFunction] || '') || null : null,
-      specific_function: colSpecificFunc ? String(row[colSpecificFunc] || '') || null : null,
-      polymers: {
-        PE: polymerCols.PE ? isTruthy(row[polymerCols.PE]) : false,
-        PP: polymerCols.PP ? isTruthy(row[polymerCols.PP]) : false,
-        PVC: polymerCols.PVC ? isTruthy(row[polymerCols.PVC]) : false,
-        PET: polymerCols.PET ? isTruthy(row[polymerCols.PET]) : false,
-        PS: polymerCols.PS ? isTruthy(row[polymerCols.PS]) : false,
-        PU: polymerCols.PU ? isTruthy(row[polymerCols.PU]) : false,
-        ABS: polymerCols.ABS ? isTruthy(row[polymerCols.ABS]) : false,
-        PA: polymerCols.PA ? isTruthy(row[polymerCols.PA]) : false,
-        PC: polymerCols.PC ? isTruthy(row[polymerCols.PC]) : false,
-        PMMA: polymerCols.PMMA ? isTruthy(row[polymerCols.PMMA]) : false,
-        PLA: polymerCols.PLA ? isTruthy(row[polymerCols.PLA]) : false,
-        rubber: polymerCols.rubber ? isTruthy(row[polymerCols.rubber]) : false,
-        silicone: polymerCols.silicone ? isTruthy(row[polymerCols.silicone]) : false,
-        other: polymerCols.other ? isTruthy(row[polymerCols.other]) : false,
-      },
+      iupac_name: String(row['iupac_name'] || '').trim() || null,
+      list_classification: listClass,
+      hazard_score: hazardScore,
+      persistence_score: persistScore,
+      bioaccumulation_score: bioaccumScore,
+      mobility_score: mobilityScore,
+      toxicity_score: toxScore,
+      harmonized_functions: harmonized,
+      production_volume_tons: prodVolume,
+      mea_names: String(row['MEA_names'] || '').trim() || null,
+      precedent_names: String(row['Precedent_names'] || '').trim() || null,
       hazard: {
-        persistent: colPersistent ? isTruthy(row[colPersistent]) : false,
-        bioaccumulative: colBioaccum ? isTruthy(row[colBioaccum]) : false,
-        mobile: colMobile ? isTruthy(row[colMobile]) : false,
-        toxic: colToxic ? isTruthy(row[colToxic]) : false,
-        cmr: colCMR ? isTruthy(row[colCMR]) : false,
-        endocrine_disruptor: colED ? isTruthy(row[colED]) : false,
-        of_concern: colConcern ? isTruthy(row[colConcern]) : false,
+        persistent: (persistScore !== null && persistScore >= 1),
+        bioaccumulative: (bioaccumScore !== null && bioaccumScore >= 1),
+        mobile: (mobilityScore !== null && mobilityScore >= 1),
+        toxic: (toxScore !== null && toxScore >= 1),
+        cmr: isRedOrOrange && (hazardScore !== null && hazardScore >= 2),
+        endocrine_disruptor: false, // Not directly in this sheet
+        of_concern: isRedOrOrange || isMEA,
       },
-      source_row: i + 2, // +2 for header row + 0-index
+      function_category: harmonized ? harmonized.split(';')[0]?.trim() || null : null,
+      specific_function: harmonized && harmonized.includes(';') ? harmonized.split(';').slice(1).join(';').trim() : null,
+      polymers: {},  // Not in Overview sheet
+      smiles: null,  // Not in Overview sheet
+      inchi: null,   // Not in Overview sheet
+      source_row: i + 2,
     });
   }
 
   console.log(`[plastchem] Parsed ${entries.length} valid chemical entries`);
+
+  // Stats
+  const redCount = entries.filter(e => e.list_classification === 'Red_list').length;
+  const orangeCount = entries.filter(e => e.list_classification === 'Orange_list').length;
+  const meaCount = entries.filter(e => e.list_classification === 'MEA_list').length;
+  console.log(`[plastchem] Red: ${redCount}, Orange: ${orangeCount}, MEA: ${meaCount}`);
+
   return entries;
 }
 
 /**
- * Parse the hazard information XLSX.
+ * Parse the hazard information XLSX (placeholder — not needed for Overview sheet).
  */
+export interface PlastChemHazardEntry {
+  cas_rn: string;
+  chemical_name: string;
+  hazard_source: string;
+  hazard_category: string;
+  hazard_detail: string | null;
+}
+
 export function parsePlastChemHazards(filePath: string): PlastChemHazardEntry[] {
   if (!fs.existsSync(filePath)) {
     console.error(`[plastchem] Hazard file not found: ${filePath}`);
@@ -248,36 +166,28 @@ export function parsePlastChemHazards(filePath: string): PlastChemHazardEntry[] 
   const workbook = XLSX.readFile(filePath, { type: 'file' });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' }) as Record<
-    string,
-    unknown
-  >[];
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' }) as Record<string, unknown>[];
+
+  console.log(`[plastchem] Hazard file: ${rows.length} rows, sheet: ${sheetName}`);
 
   const headers = Object.keys(rows[0] || {});
-  const colCAS = findColumn(headers, ['CAS RN', 'CAS', 'cas_rn', 'CASRN']);
-  const colName = findColumn(headers, ['Chemical name', 'Name', 'chemical_name']);
+  const colCAS = headers.find(h => h.toLowerCase().includes('cas')) || null;
 
   if (!colCAS) {
     console.error('[plastchem] Cannot find CAS column in hazard file');
     return [];
   }
 
-  console.log(`[plastchem] Hazard file: ${rows.length} rows`);
-
   return rows
-    .filter((r) => {
+    .filter(r => {
       const cas = String(r[colCAS!] || '').trim();
       return cas && cas.includes('-');
     })
-    .map((r) => ({
+    .map(r => ({
       cas_rn: String(r[colCAS!]).trim(),
-      chemical_name: colName ? String(r[colName] || '').trim() : '',
-      hazard_source: String(r[findColumn(headers, ['Source', 'source']) || ''] || 'plastchem').trim(),
-      hazard_category: String(
-        r[findColumn(headers, ['Hazard', 'hazard_category', 'Category']) || ''] || ''
-      ).trim(),
-      hazard_detail: String(
-        r[findColumn(headers, ['Detail', 'hazard_detail', 'Description']) || ''] || ''
-      ).trim() || null,
+      chemical_name: String(r[headers.find(h => h.toLowerCase().includes('name')) || ''] || '').trim(),
+      hazard_source: 'plastchem',
+      hazard_category: String(r[headers.find(h => h.toLowerCase().includes('hazard')) || ''] || '').trim(),
+      hazard_detail: null,
     }));
 }
