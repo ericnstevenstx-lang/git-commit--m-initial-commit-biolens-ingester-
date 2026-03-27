@@ -9,6 +9,8 @@
     "map:ingredients": "tsx src/scripts/runMapIngredients.ts",
     "export:audit": "tsx src/scripts/runExportAudit.ts",
     "ingest:off": "tsx src/scripts/runIngestOFF.ts",
+    "ingest:obf": "tsx src/scripts/runIngestOBF.ts",
+    "ingest:plastchem": "tsx src/scripts/runIngestPlastChem.ts",
     "resolve:origin": "tsx src/scripts/runResolveOrigin.ts",
     "enrich:chemicals": "tsx src/scripts/runEnrichChemicals.ts",
     "classify:hts": "tsx src/scripts/runClassifyHTS.ts",
@@ -25,6 +27,7 @@
     "csv-parse": "^5.6.0",
     "csv-stringify": "^6.5.0",
     "dotenv": "^16.4.5",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {
