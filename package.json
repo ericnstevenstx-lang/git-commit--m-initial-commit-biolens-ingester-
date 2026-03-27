@@ -16,6 +16,10 @@
 
     "audit:all": "npm run audit:unresolved && npm run audit:identifier-conflicts",
 
+    "ingest:off": "tsx src/scripts/runIngestOFF.ts",
+    "classify:hts": "tsx src/scripts/runClassifyHTS.ts",
+    "compute:tariff": "tsx src/scripts/runComputeTariff.ts",
+    "resolve:origin": "tsx src/scripts/runResolveOrigin.ts",
     "lookup:reverse-gtin": "tsx src/scripts/runReverseGTINLookup.ts",
     "enrich:upc": "tsx src/scripts/runEnrichUPC.ts"
   },
